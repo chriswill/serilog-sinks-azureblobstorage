@@ -1,5 +1,7 @@
 # Serilog.Sinks.AzureBlobStorage
 
+[![Build status](https://dev.azure.com/cloudscope/Serilog/_apis/build/status/Serilog-CI)](https://dev.azure.com/cloudscope/Serilog/_build/latest?definitionId=13)
+
 Writes to a file in [Windows Azure Blob Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs/).
 
 **Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - .NET 4.5, .Net Standard 2.0
@@ -52,5 +54,7 @@ In your application's `App.config` or `Web.config` file, specify the file sink a
     <add key="serilog:write-to:AzureBlobStorage.formatter" value="Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact" />
 ```
 
-This is a fork of the Serilog Azure [Table storage sink](https://github.com/serilog/serilog-sinks-azuretablestorage).  Thanks 
-and acknowledgement to the original authors of that work.
+### Acknowledgements
+
+This is a fork of the Serilog [Azure Table storage sink](https://github.com/serilog/serilog-sinks-azuretablestorage).  Thanks 
+and acknowledgements to the original authors of that work.
