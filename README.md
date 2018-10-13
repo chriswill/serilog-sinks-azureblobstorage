@@ -1,6 +1,6 @@
 # Serilog.Sinks.AzureBlobStorage
 
-[![Build status](https://dev.azure.com/cloudscope/Serilog/_apis/build/status/Serilog-CI)](https://dev.azure.com/cloudscope/Serilog/_build/latest?definitionId=13)
+![Build status](https://dev.azure.com/cloudscope/Serilog/_apis/build/status/Serilog-CI "Build status")
 
 Writes to a file in [Windows Azure Blob Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs/).
 
