@@ -1,5 +1,4 @@
-﻿// Copyright 2018 CloudScope, LLC
-// Portions copyright 2014 Serilog Contributors
+// Copyright 2018 CloudScope, LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,13 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
+namespace Serilog.Sinks.AzureBlobStorage.Tests
 {
-    public interface ICloudBlobProvider
+    [TestClass]
+    public class UnitTest1
     {
-        CloudAppendBlob GetCloudBlob(CloudStorageAccount storageAccount, string folderName, string fileName, bool bypassBlobCreationValidation);
+        [TestMethod]
+        public void TestMethod1()
+        {
+        }
     }
 }

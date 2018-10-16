@@ -1,5 +1,4 @@
 ﻿// Copyright 2018 CloudScope, LLC
-// Portions copyright 2014 Serilog Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,13 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Serilog;
 
-namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
+namespace AzureBlobStorage.TestClient
 {
-    public interface ICloudBlobProvider
+    class Program
     {
-        CloudAppendBlob GetCloudBlob(CloudStorageAccount storageAccount, string folderName, string fileName, bool bypassBlobCreationValidation);
+        private static string connectionString = "";
+
+        static void Main(string[] args)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.AzureBlobStorage(connectionString)
+                .CreateLogger();
+
+            Log.Information("Hello World!");
+        }
     }
 }
