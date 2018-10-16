@@ -1,4 +1,5 @@
-﻿// Copyright 2014 Serilog Contributors
+﻿// Copyright 2018 CloudScope, LLC
+// Portions copyright 2014 Serilog Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.IO;
-using System.Threading;
+using System.Text;
 using Microsoft.WindowsAzure.Storage;
 using Serilog.Core;
 using Serilog.Events;
@@ -79,11 +79,17 @@ namespace Serilog.Sinks.AzureBlobStorage
         {            
             var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, storageFileName, bypassFolderCreationValidation);
 
+            StringBuilder sb = new StringBuilder();
+            TextWriter tw = new StringWriter(sb);
+
+            textFormatter.Format(logEvent, tw);
+            tw.Flush();
+
             using (MemoryStream stream = new MemoryStream())
             {
                 using (StreamWriter writer = new StreamWriter(stream))
                 {
-                    writer.Write(logEvent.RenderMessage() + Environment.NewLine);
+                    writer.Write(sb.ToString());
                     writer.Flush();
                     stream.Position = 0;
 

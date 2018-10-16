@@ -13,6 +13,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Artifacts", "Artifacts", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.AzureBlobStorage", "src\Serilog.Sinks.AzureBlobStorage\Serilog.Sinks.AzureBlobStorage.csproj", "{EDB6E773-0A33-4A88-81BC-3B24ABFEBA61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.AzureBlobStorage.Tests", "test\Serilog.Sinks.AzureBlobStorage.Tests\Serilog.Sinks.AzureBlobStorage.Tests.csproj", "{D7F1F371-AF7E-41B7-886B-F6925B662BF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureBlobStorage.TestClient", "test\AzureBlobStorage.TestClient\AzureBlobStorage.TestClient.csproj", "{500938EC-A458-4892-9BB3-4083EACB6534}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{BD6DDC9A-B4A7-49E9-99F9-1EB7C462BF67}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,9 +29,21 @@ Global
 		{EDB6E773-0A33-4A88-81BC-3B24ABFEBA61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDB6E773-0A33-4A88-81BC-3B24ABFEBA61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDB6E773-0A33-4A88-81BC-3B24ABFEBA61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7F1F371-AF7E-41B7-886B-F6925B662BF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7F1F371-AF7E-41B7-886B-F6925B662BF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7F1F371-AF7E-41B7-886B-F6925B662BF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7F1F371-AF7E-41B7-886B-F6925B662BF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500938EC-A458-4892-9BB3-4083EACB6534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500938EC-A458-4892-9BB3-4083EACB6534}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500938EC-A458-4892-9BB3-4083EACB6534}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500938EC-A458-4892-9BB3-4083EACB6534}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D7F1F371-AF7E-41B7-886B-F6925B662BF7} = {BD6DDC9A-B4A7-49E9-99F9-1EB7C462BF67}
+		{500938EC-A458-4892-9BB3-4083EACB6534} = {BD6DDC9A-B4A7-49E9-99F9-1EB7C462BF67}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {73E16F7E-6DF4-4355-BF3C-73DDBBA1867E}
