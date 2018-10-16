@@ -20,8 +20,8 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage;
-using Serilog.Formatting.Json;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
+using Serilog.Formatting.Display;
 
 namespace Serilog
 {
@@ -41,11 +41,15 @@ namespace Serilog
         /// </summary>
         public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(2);
 
+        
+        internal const string DefaultConsoleOutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
+
         /// <summary>
         /// Adds a sink that writes log events as records in an Azure Blob Storage blob (default 'logging') using the given storage account.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
@@ -61,6 +65,7 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
             CloudStorageAccount storageAccount,
+            string outputTemplate = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             IFormatProvider formatProvider = null,
             string storageFolderName = null,
@@ -73,9 +78,15 @@ namespace Serilog
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
+
+            if (string.IsNullOrEmpty(outputTemplate))
+            {
+                outputTemplate = DefaultConsoleOutputTemplate;
+            }
+
             return AzureBlobStorage(
                 loggerConfiguration,
-                new JsonFormatter(formatProvider: formatProvider, closingDelimiter: ""),
+                new MessageTemplateTextFormatter(outputTemplate, formatProvider),
                 storageAccount,
                 restrictedToMinimumLevel,
                 storageFolderName,
@@ -93,6 +104,7 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="connectionString">The Cloud Storage Account connection string to use to insert the log entries to.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
@@ -108,6 +120,7 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
             string connectionString,
+            string outputTemplate = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             IFormatProvider formatProvider = null,
             string storageFolderName = null,
@@ -120,9 +133,15 @@ namespace Serilog
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+
+            if (string.IsNullOrEmpty(outputTemplate))
+            {
+                outputTemplate = DefaultConsoleOutputTemplate;
+            }
+
             return AzureBlobStorage(
                 loggerConfiguration,
-                new JsonFormatter(formatProvider: formatProvider, closingDelimiter: ""),
+                new MessageTemplateTextFormatter(outputTemplate, formatProvider),
                 connectionString,
                 restrictedToMinimumLevel,
                 storageFolderName,
@@ -142,6 +161,7 @@ namespace Serilog
         /// <param name="sharedAccessSignature">The storage account/blob SAS key.</param>
         /// <param name="accountName">The storage account name.</param>
         /// <param name="blobEndpoint">The (optional) blob endpoint. Only needed for testing.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
@@ -158,6 +178,7 @@ namespace Serilog
             string sharedAccessSignature,
             string accountName,
             Uri blobEndpoint = null,
+            string outputTemplate = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             IFormatProvider formatProvider = null,
             string storageFolderName = null,
@@ -171,9 +192,15 @@ namespace Serilog
             if (string.IsNullOrWhiteSpace(accountName)) throw new ArgumentNullException(nameof(accountName));
             if (string.IsNullOrWhiteSpace(sharedAccessSignature))
                 throw new ArgumentNullException(nameof(sharedAccessSignature));
+
+            if (string.IsNullOrEmpty(outputTemplate))
+            {
+                outputTemplate = DefaultConsoleOutputTemplate;
+            }
+
             return AzureBlobStorage(
                 loggerConfiguration,
-                new JsonFormatter(formatProvider: formatProvider, closingDelimiter: ""),
+                new MessageTemplateTextFormatter(outputTemplate, formatProvider),
                 sharedAccessSignature,
                 accountName,
                 blobEndpoint,
