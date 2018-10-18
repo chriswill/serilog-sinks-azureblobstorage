@@ -13,20 +13,20 @@
     <PackageId>Serilog.Sinks.AzureBlobStorage</PackageId>
     <PackageTags>serilog;logging;azure</PackageTags>
     <PackageIconUrl></PackageIconUrl>
-    <PackageProjectUrl>https://github.com/serilog/serilog-sinks-azureblobstorage</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/chriswill/serilog-sinks-azureblobstorage</PackageProjectUrl>
     <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.3' ">$(PackageTargetFallback);portable-net45+win8+wp8+wpa81</PackageTargetFallback>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Company>Chris Williams</Company>
+    <Company>CloudTools, LLC</Company>
     <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.6.0" />
     <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.1.1" />
-    <PackageReference Include="WindowsAzure.Storage" Version="9.1.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.0.0" />
   </ItemGroup>
 </Project>

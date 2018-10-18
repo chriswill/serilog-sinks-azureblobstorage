@@ -13,12 +13,36 @@
 // limitations under the License.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RimDev.Automation.StorageEmulator;
 
 namespace Serilog.Sinks.AzureBlobStorage.Tests
 {
     [TestClass]
-    public class UnitTest1
+    public class AzureBlobStorageTests
     {
+        private static AzureStorageEmulatorAutomation azureStorage;
+
+        [ClassInitialize]
+        public static void Initialize()
+        {
+            azureStorage.Start();
+        }
+
+        [ClassCleanup]
+        public static void Cleanup()
+        {
+            azureStorage.Stop();
+            azureStorage.Dispose();
+        }
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            if (!AzureStorageEmulatorAutomation.IsEmulatorRunning())
+                throw new System.Exception("Storage emulator is not running");
+            azureStorage.ClearBlobs();
+        }
+
         [TestMethod]
         public void TestMethod1()
         {
