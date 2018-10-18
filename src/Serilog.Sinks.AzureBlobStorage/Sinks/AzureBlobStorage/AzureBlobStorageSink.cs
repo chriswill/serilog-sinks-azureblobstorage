@@ -56,7 +56,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             if (string.IsNullOrEmpty(storageFolderName))
             {
-                storageFolderName = "logging";
+                storageFolderName = "logs";
             }
 
             if (string.IsNullOrEmpty(storageFileName))
