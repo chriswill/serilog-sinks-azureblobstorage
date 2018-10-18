@@ -2,10 +2,18 @@
 
 ![Build status](https://dev.azure.com/cloudscope/Serilog/_apis/build/status/Serilog-master "Build status")
 
-Writes to a file in [Windows Azure Blob Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs/).
+Writes to a file in [Windows Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/).
+
+Azure Blob Storage offers [appending blobs](https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs/), which allow you to add content quickly to a single blob without locking it for updates.  For this reason, appending blobs are ideal for logging applications.
+
+The AzureBlobStorage sink appends data to the blob in text format. Here's a sample line:
+```
+[2018-10-17 23:03:56 INF] Hello World!
+```
 
 **Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - .NET 4.5, .Net Standard 2.0
 
+**Usage**
 ```csharp
 var storage = CloudStorageAccount.FromConfigurationSetting("MyStorage");
 
@@ -13,6 +21,11 @@ var log = new LoggerConfiguration()
     .WriteTo.AzureBlobStorage(storage)
     .CreateLogger();
 ```
+
+In addition to the storage connection, you can also specify:
+* Message line format
+* Blob container (default: logs)
+* Blob filename (default: log.txt)
 
 ### JSON configuration
 

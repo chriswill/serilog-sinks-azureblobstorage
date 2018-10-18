@@ -35,8 +35,8 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             {
                 cloudBlobContainer.CreateIfNotExistsAsync().SyncContextSafeWait(waitTimeoutMilliseconds);
                 cloudAppendBlob = cloudBlobContainer.GetAppendBlobReference(fileName);                
-                if (!cloudAppendBlob.ExistsAsync().GetAwaiter().GetResult())
-                    cloudAppendBlob.CreateOrReplaceAsync().ConfigureAwait(false);                   
+                if (!cloudAppendBlob.ExistsAsync().Result)
+                    cloudAppendBlob.CreateOrReplaceAsync().Wait();                   
             }
             catch (Exception ex)
             {
