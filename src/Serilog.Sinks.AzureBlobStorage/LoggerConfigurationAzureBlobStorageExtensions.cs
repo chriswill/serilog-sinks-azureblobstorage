@@ -46,7 +46,7 @@ namespace Serilog
         internal const string DefaultConsoleOutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 
         /// <summary>
-        /// Adds a sink that writes log events as records in an Azure Blob Storage blob (default 'logging') using the given storage account.
+        /// Adds a sink that writes log events as records in an Azure Blob Storage blob (default 'log.txt') using the given storage account.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
@@ -100,7 +100,7 @@ namespace Serilog
         }
 
         /// <summary>
-        /// Adds a sink that writes log events as records in Azure Blob Storage blob (default name logging) using the given
+        /// Adds a sink that writes log events as records in Azure Blob Storage blob (default name 'log.txt') using the given
         /// storage account connection string.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
@@ -155,7 +155,7 @@ namespace Serilog
         }
 
         /// <summary>
-        /// Adds a sink that writes log events as records in Azure Blob Storage blob (default name 'logging') using the given
+        /// Adds a sink that writes log events as records in Azure Blob Storage blob (default name 'log.txt') using the given
         /// storage account name and Shared Access Signature (SAS) URL.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
@@ -265,7 +265,7 @@ namespace Serilog
         }
 
         /// <summary>
-        /// Adds a sink that writes log events as records in Azure Blob Storage blob (default name 'logging') using the given
+        /// Adds a sink that writes log events as records in Azure Blob Storage blob (default name 'log.txt') using the given
         /// storage account connection string.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
