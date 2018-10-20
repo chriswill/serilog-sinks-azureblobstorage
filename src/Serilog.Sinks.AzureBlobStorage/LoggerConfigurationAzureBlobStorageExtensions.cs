@@ -65,16 +65,16 @@ namespace Serilog
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
-            CloudStorageAccount storageAccount,
-            string outputTemplate = null,
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
-            IFormatProvider formatProvider = null,
+            CloudStorageAccount storageAccount,            
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,            
             string storageFolderName = null,
             string storageFileName = null,
+            string outputTemplate = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
             int? batchPostingLimit = null,            
             bool bypassBlobCreationValidation = false,
+            IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
@@ -120,16 +120,16 @@ namespace Serilog
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
-            string connectionString,
-            string outputTemplate = null,
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
-            IFormatProvider formatProvider = null,
+            string connectionString,            
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,            
             string storageFolderName = null,
             string storageFileName = null,
+            string outputTemplate = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
             int? batchPostingLimit = null,            
             bool bypassBlobCreationValidation = false,
+            IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
@@ -178,15 +178,15 @@ namespace Serilog
             this LoggerSinkConfiguration loggerConfiguration,
             string sharedAccessSignature,
             string accountName,
-            Uri blobEndpoint = null,
-            string outputTemplate = null,
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
-            IFormatProvider formatProvider = null,
+            Uri blobEndpoint = null,            
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,            
             string storageFolderName = null,
             string storageFileName = null,
+            string outputTemplate = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
-            int? batchPostingLimit = null,            
+            int? batchPostingLimit = null,
+            IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
