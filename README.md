@@ -1,6 +1,7 @@
 # Serilog.Sinks.AzureBlobStorage
 
 ![Build status](https://dev.azure.com/cloudscope/Serilog/_apis/build/status/Serilog-master "Build status")
+[![NuGet Badge](https://buildstats.info/nuget/Serilog.Sinks.AzureBlobStorage)](https://www.nuget.org/packages/Serilog.Sinks.AzureBlobStorage/)
 
 Writes to a file in [Windows Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/).
 
