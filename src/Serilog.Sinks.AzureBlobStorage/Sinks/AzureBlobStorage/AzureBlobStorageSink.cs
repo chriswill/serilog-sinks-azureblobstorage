@@ -31,9 +31,9 @@ namespace Serilog.Sinks.AzureBlobStorage
         readonly ITextFormatter textFormatter;        
         readonly CloudStorageAccount storageAccount;
         readonly string storageFolderName;
-        readonly string storageFileName;
         readonly bool bypassFolderCreationValidation;
         readonly ICloudBlobProvider cloudBlobProvider;
+        readonly BlobNameFactory blobNameFactory;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -66,7 +66,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             this.storageAccount = storageAccount;
             this.storageFolderName = storageFolderName;
-            this.storageFileName = storageFileName;
+            this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassFolderCreationValidation = bypassFolderCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
         }
@@ -76,8 +76,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// </summary>
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
-        {            
-            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, storageFileName, bypassFolderCreationValidation);
+        {
+            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassFolderCreationValidation);
 
             StringBuilder sb = new StringBuilder();
             TextWriter tw = new StringWriter(sb);

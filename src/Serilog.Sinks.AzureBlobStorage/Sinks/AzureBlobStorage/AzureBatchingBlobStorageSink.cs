@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
+using System.Linq;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
@@ -33,9 +34,9 @@ namespace Serilog.Sinks.AzureBlobStorage
         readonly ITextFormatter textFormatter;        
         readonly CloudStorageAccount storageAccount;
         readonly string storageFolderName;
-        readonly string storageFileName;
         readonly bool bypassBlobCreationValidation;
         readonly ICloudBlobProvider cloudBlobProvider;
+        readonly BlobNameFactory blobNameFactory;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -97,14 +98,18 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             this.storageAccount = storageAccount;
             this.storageFolderName = storageFolderName;
-            this.storageFileName = storageFileName;
+            this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassBlobCreationValidation = bypassBlobCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
         }
 
         protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
-        {            
-            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, storageFileName, bypassBlobCreationValidation);
+        {
+            var lastEvent = events.LastOrDefault();
+            if (lastEvent == null)
+                return;
+
+            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation);
 
             using (MemoryStream stream = new MemoryStream())
             {
