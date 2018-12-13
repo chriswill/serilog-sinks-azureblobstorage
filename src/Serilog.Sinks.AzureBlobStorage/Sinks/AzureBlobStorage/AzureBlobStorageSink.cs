@@ -15,6 +15,7 @@
 
 using System.IO;
 using System.Text;
+using System.Threading;
 using Microsoft.WindowsAzure.Storage;
 using Serilog.Core;
 using Serilog.Events;
@@ -27,13 +28,14 @@ namespace Serilog.Sinks.AzureBlobStorage
     /// Writes log events as records to an Azure Blob Storage blob.
     /// </summary>
     public class AzureBlobStorageSink : ILogEventSink
-    {        
-        readonly ITextFormatter textFormatter;        
+    {
+        readonly int waitTimeoutMilliseconds = Timeout.Infinite;
+        readonly ITextFormatter textFormatter;
         readonly CloudStorageAccount storageAccount;
         readonly string storageFolderName;
+        readonly string storageFileName;
         readonly bool bypassFolderCreationValidation;
         readonly ICloudBlobProvider cloudBlobProvider;
-        readonly BlobNameFactory blobNameFactory;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -52,7 +54,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             bool bypassFolderCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null)
         {
-            this.textFormatter = textFormatter;            
+            this.textFormatter = textFormatter;
 
             if (string.IsNullOrEmpty(storageFolderName))
             {
@@ -66,7 +68,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             this.storageAccount = storageAccount;
             this.storageFolderName = storageFolderName;
-            this.blobNameFactory = new BlobNameFactory(storageFileName);
+            this.storageFileName = storageFileName;
             this.bypassFolderCreationValidation = bypassFolderCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
         }
@@ -77,7 +79,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
         {
-            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassFolderCreationValidation);
+            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, storageFileName, bypassFolderCreationValidation);
 
             StringBuilder sb = new StringBuilder();
             TextWriter tw = new StringWriter(sb);
@@ -93,7 +95,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                     writer.Flush();
                     stream.Position = 0;
 
-                    blob.AppendBlockAsync(stream).ConfigureAwait(false);
+                    blob.AppendBlockAsync(stream).SyncContextSafeWait(waitTimeoutMilliseconds);
                 }
             }
         }
