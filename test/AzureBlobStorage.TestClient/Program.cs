@@ -26,7 +26,7 @@ namespace AzureBlobStorage.TestClient
         {            
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .WriteTo.AzureBlobStorage(connectionString)
+                .WriteTo.AzureBlobStorage(connectionString, Serilog.Events.LogEventLevel.Information, null, "{yyyy}/{MM}/{dd}/log.txt")
                 .CreateLogger();
 
             Log.Information("Hello World!");
