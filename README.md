@@ -31,7 +31,22 @@ In addition to the storage connection, you can also specify:
 ### Configuration examples
 
 #### Rolling file
-By default, the log file name is logs.txt, but you can add date substitutions to create a rolling file implementation.
+
+By default, the log file name is logs.txt, but you can add date substitutions to create a rolling file implementation. These are more fully shown in the (Unit Test)
+[https://github.com/chriswill/serilog-sinks-azureblobstorage/blob/master/test/Serilog.Sinks.AzureBlobStorage.UnitTest/BlobNameFactoryUT.cs] project.  But as an example, you can create a log file name like this: {yyyy}/{MM}/{dd}/log.txt
+
+On December 15, 2018 (when this was written), log files would appear to be in a folder structure as shown below:
+
+```
+
+\2018
+-----\12
+      ----\15
+                log.txt
+
+```
+
+In the file name, the values must appear in descending order, e.g.: yy MM dd hh mm, although it is not required to include all date elements.
 
 #### Posting in batches
 
@@ -54,7 +69,7 @@ It is possible to configure the sink using [Serilog.Settings.Configuration](http
 ```json
 "Serilog": {
   "WriteTo": [
-    {"Name": "AzureBlobStorage", "Args": {"storageFolderName": "", "storageFileName": "", "connectionString": ""}}
+    {"Name": "AzureBlobStorage", "Args": {"connectionString": "", "storageFolderName": "", "storageFileName": ""}}
   ]
 }
 ```
@@ -86,6 +101,11 @@ In your application's `App.config` or `Web.config` file, specify the file sink a
     <add key="serilog:write-to:AzureBlobStorage.connectionString" value="DefaultEndpointsProtocol=https;AccountName=ACCOUNT_NAME;AccountKey=KEY;EndpointSuffix=core.windows.net" />
     <add key="serilog:write-to:AzureBlobStorage.formatter" value="Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact" />
 ```
+
+### A note about Unit Testing
+
+Unfortunately the Azure Storage emulator does not support append blobs, so I'm omitted the unit tests from this project.  I'd love to have unit tests,
+but I'd like to have them be able to run on Azure Dev Ops (hosted build agents)[https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/win/Vs2017-Server2016-Readme.md].  Suggestions?
 
 ### Acknowledgements
 
