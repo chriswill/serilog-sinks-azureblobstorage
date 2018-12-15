@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.WindowsAzure.Storage;
 using Serilog;
+using System;
 
 namespace AzureBlobStorage.TestClient
 {
@@ -21,13 +23,13 @@ namespace AzureBlobStorage.TestClient
         private static string connectionString = "";
 
         static void Main(string[] args)
-        {
+        {            
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.AzureBlobStorage(connectionString)
                 .CreateLogger();
 
             Log.Information("Hello World!");
-        }
+        }        
     }
 }

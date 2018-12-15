@@ -75,5 +75,16 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             Assert.Equal("webhook/20181105/08.txt", result);
         }
+
+        [Fact(DisplayName = "Should parse into year, month, day folder with static filename.")]
+        public void YearMonthDayFolderStaticName()
+        {
+            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+            var bn = new BlobNameFactory("webhook/{yyyy}/{MM}/{dd}/logs.txt");
+
+            var result = bn.GetBlobName(dtoToApply);
+
+            Assert.Equal("webhook/2018/11/05/logs.txt", result);
+        }
     }
 }

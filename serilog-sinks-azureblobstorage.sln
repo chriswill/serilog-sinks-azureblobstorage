@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureBlobStorage.TestClient
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{BD6DDC9A-B4A7-49E9-99F9-1EB7C462BF67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.AzureBlobStorage.UnitTest", "Serilog.Sinks.AzureBlobStorage.UnitTest\Serilog.Sinks.AzureBlobStorage.UnitTest.csproj", "{F94B805F-E056-4921-8EC2-0B0F4849BBE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.AzureBlobStorage.UnitTest", "test\Serilog.Sinks.AzureBlobStorage.UnitTest\Serilog.Sinks.AzureBlobStorage.UnitTest.csproj", "{F94B805F-E056-4921-8EC2-0B0F4849BBE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
