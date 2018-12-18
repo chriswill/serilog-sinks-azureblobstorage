@@ -37,7 +37,7 @@ steps:
 
     projects: 'tests/**/*.csproj'
 
-    arguments: '--configuration $(BuildConfiguration)  --logger trx'
+    arguments: '--configuration $(BuildConfiguration)  --logger trx  --results-directory $(Agent.TempDirectory) --collect "Code coverage"'
 
 
 - task: PublishTestResults@2
@@ -46,4 +46,4 @@ steps:
     testRunner: VSTest
     testResultsFiles: '**/*.trx'
 
-- task: PublishBuildArtifacts@1
+# - task: PublishBuildArtifacts@1
