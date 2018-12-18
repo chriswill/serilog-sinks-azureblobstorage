@@ -13,15 +13,34 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: |
-    dotnet build --configuration $(buildConfiguration)
-    dotnet test tests --configuration $(buildConfiguration) --logger trx
-#    dotnet publish --configuration $(buildConfiguration) --output $BUILD_ARTIFACTSTAGINGDIRECTORY
 
-# - task: PublishTestResults@2
-#  condition: succeededOrFailed()
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: restore
+
+    projects: '$(Parameters.RestoreBuildProjects)'
+
+
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    projects: '$(Parameters.RestoreBuildProjects)'
+
+    arguments: '--configuration $(BuildConfiguration)'
+
+
+- task: DotNetCoreCLI@2
+  displayName: Test
+  inputs:
+    command: test
+
+    projects: '$(Parameters.TestProjects)'
+
+    arguments: '--configuration $(BuildConfiguration)'
+
+
+#- task: PublishBuildArtifacts@1
+#  displayName: 'Publish Artifact'
 #  inputs:
-#    testRunner: VSTest
-#    testResultsFiles: '**/*.trx'
-
-# - task: PublishBuildArtifacts@1
+#    PathtoPublish: '$(build.artifactstagingdirectory)'
