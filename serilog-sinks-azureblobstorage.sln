@@ -4,6 +4,7 @@ VisualStudioVersion = 15.0.27128.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Artifacts", "Artifacts", "{40D1EC3F-DCD9-47EB-8629-54D71AC31757}"
 	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
 		CHANGES.md = CHANGES.md
 		README.md = README.md
 	EndProjectSection
