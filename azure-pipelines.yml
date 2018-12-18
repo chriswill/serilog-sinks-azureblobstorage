@@ -37,7 +37,7 @@ steps:
 
     projects: 'tests/**/*.csproj'
 
-    arguments: '--configuration $(BuildConfiguration)  --logger trx  --results-directory $(Agent.TempDirectory)'
+    arguments: '--configuration $(BuildConfiguration)'
 
 
 - task: PublishTestResults@2
