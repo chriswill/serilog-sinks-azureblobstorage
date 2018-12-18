@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Artifacts", "Artifacts", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.AzureBlobStorage", "src\Serilog.Sinks.AzureBlobStorage\Serilog.Sinks.AzureBlobStorage.csproj", "{EDB6E773-0A33-4A88-81BC-3B24ABFEBA61}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureBlobStorage.TestClient", "tests\AzureBlobStorage.TestClient\AzureBlobStorage.TestClient.csproj", "{500938EC-A458-4892-9BB3-4083EACB6534}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{BD6DDC9A-B4A7-49E9-99F9-1EB7C462BF67}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.AzureBlobStorage.UnitTest", "tests\Serilog.Sinks.AzureBlobStorage.UnitTest\Serilog.Sinks.AzureBlobStorage.UnitTest.csproj", "{F94B805F-E056-4921-8EC2-0B0F4849BBE8}"
