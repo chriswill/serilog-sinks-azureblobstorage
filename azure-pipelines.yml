@@ -19,13 +19,13 @@ steps:
   inputs:
     command: restore
 
-    projects: '$(Parameters.RestoreBuildProjects)'
+    projects: '**/*.csproj'
 
 
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
-    projects: '$(Parameters.RestoreBuildProjects)'
+    projects: '**/*.csproj'
 
     arguments: '--configuration $(BuildConfiguration)'
 
@@ -35,12 +35,15 @@ steps:
   inputs:
     command: test
 
-    projects: '$(Parameters.TestProjects)'
+    projects: 'tests/**/*.csproj'
 
-    arguments: '--configuration $(BuildConfiguration)'
+    arguments: '--configuration $(BuildConfiguration)  --logger trx'
 
 
-#- task: PublishBuildArtifacts@1
-#  displayName: 'Publish Artifact'
-#  inputs:
-#    PathtoPublish: '$(build.artifactstagingdirectory)'
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
+
+- task: PublishBuildArtifacts@1
