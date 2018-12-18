@@ -40,11 +40,4 @@ steps:
     arguments: '--configuration $(BuildConfiguration)'
 
 
-- task: PublishTestResults@2
-  displayName: Publish test results
-  condition: succeededOrFailed()
-  inputs:
-    testRunner: VSTest
-    testResultsFiles: '**/*.trx'
-
 # - task: PublishBuildArtifacts@1
