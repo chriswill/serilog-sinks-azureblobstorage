@@ -33,7 +33,7 @@ In addition to the storage connection, you can also specify:
 #### Rolling file example
 
 By default, the log file name is logs.txt, but you can add date substitutions to create a rolling file implementation. These are more fully shown in the 
-[Unit Test](https://github.com/chriswill/serilog-sinks-azureblobstorage/blob/master/test/Serilog.Sinks.AzureBlobStorage.UnitTest/BlobNameFactoryUT.cs) 
+[Unit Test](https://github.com/chriswill/serilog-sinks-azureblobstorage/blob/master/tests/Serilog.Sinks.AzureBlobStorage.UnitTest/BlobNameFactoryUT.cs) 
 project. But as an example, you can create a log file name like this: {yyyy}/{MM}/{dd}/log.txt
 
 ```csharp
