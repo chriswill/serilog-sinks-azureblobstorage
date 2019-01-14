@@ -110,8 +110,7 @@ namespace Serilog
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
-        /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
+        /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>        
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
