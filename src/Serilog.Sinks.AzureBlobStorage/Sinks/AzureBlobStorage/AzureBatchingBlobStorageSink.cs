@@ -117,7 +117,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                 {
                     foreach (LogEvent logEvent in events)
                     {
-                        writer.Write(logEvent.RenderMessage() + Environment.NewLine);
+                        textFormatter.Format(logEvent, writer);
                     }
 
                     writer.Flush();
