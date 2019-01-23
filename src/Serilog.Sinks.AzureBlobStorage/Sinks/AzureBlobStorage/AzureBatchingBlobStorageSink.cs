@@ -13,16 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Serilog.Events;
-using Serilog.Sinks.PeriodicBatching;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
-using System.Linq;
+using Serilog.Sinks.PeriodicBatching;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
@@ -37,6 +37,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         readonly bool bypassBlobCreationValidation;
         readonly ICloudBlobProvider cloudBlobProvider;
         readonly BlobNameFactory blobNameFactory;
+        readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
+        readonly IAppendBlobBlockWriter appendBlobBlockWriter;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -56,8 +58,10 @@ namespace Serilog.Sinks.AzureBlobStorage
             TimeSpan period,
             string storageFolderName = null,
             string storageFileName = null,
-            ICloudBlobProvider cloudBlobProvider = null)
-            : this(storageAccount, textFormatter, batchSizeLimit, period, storageFolderName, storageFileName, cloudBlobProvider: cloudBlobProvider)
+            ICloudBlobProvider cloudBlobProvider = null,
+            IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
+            IAppendBlobBlockWriter appendBlobBlockWriter = null)
+            : this(storageAccount, textFormatter, batchSizeLimit, period, storageFolderName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter)
         {
         }
 
@@ -80,7 +84,9 @@ namespace Serilog.Sinks.AzureBlobStorage
             string storageFolderName = null,
             string storageFileName = null,
             bool bypassBlobCreationValidation = false,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
+            IAppendBlobBlockWriter appendBlobBlockWriter = null)
             : base(batchSizeLimit, period)
         {
 
@@ -101,6 +107,8 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassBlobCreationValidation = bypassBlobCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
+            this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
+            this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
         }
 
         protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
@@ -109,23 +117,11 @@ namespace Serilog.Sinks.AzureBlobStorage
             if (lastEvent == null)
                 return;
 
-            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation);
+            var blob = await cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageFolderName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation).ConfigureAwait(false);
 
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (StreamWriter writer = new StreamWriter(stream))
-                {
-                    foreach (LogEvent logEvent in events)
-                    {
-                        textFormatter.Format(logEvent, writer);
-                    }
+            var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, events);
 
-                    writer.Flush();
-                    stream.Position = 0;
-
-                    await blob.AppendBlockAsync(stream);
-                }
-            }
+            await appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).ConfigureAwait(false);
         }
     }
 }

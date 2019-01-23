@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -20,6 +21,6 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
     public interface ICloudBlobProvider
     {
-        CloudAppendBlob GetCloudBlob(CloudStorageAccount storageAccount, string folderName, string fileName, bool bypassBlobCreationValidation);
+        Task<CloudAppendBlob> GetCloudBlobAsync(CloudStorageAccount storageAccount, string blobContainerName, string blobName, bool bypassBlobCreationValidation);
     }
 }

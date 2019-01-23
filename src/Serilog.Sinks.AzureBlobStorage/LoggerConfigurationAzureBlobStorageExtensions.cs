@@ -360,7 +360,7 @@ namespace Serilog
                 }
                 else
                 {
-                    storageAccount = new CloudStorageAccount(credentials, null, null, blobEndpoint, null);
+                    storageAccount = new CloudStorageAccount(credentials, blobEndpoint, null, null, null);
                 }
 
                 // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.

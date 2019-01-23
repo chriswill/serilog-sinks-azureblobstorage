@@ -14,7 +14,9 @@
 // limitations under the License.
 
 using System;
-using System.Threading;
+using System.IO;
+using System.Net;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -22,21 +24,93 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
     internal class DefaultCloudBlobProvider : ICloudBlobProvider
     {
-        readonly int waitTimeoutMilliseconds = Timeout.Infinite;
-        private CloudAppendBlob cloudAppendBlob;
+        private CloudAppendBlob currentCloudAppendBlob;
+        private string currentBlobName = string.Empty;
+        private int currentBlobRollSequence = 0;
 
-        public CloudAppendBlob GetCloudBlob(CloudStorageAccount storageAccount, string folderName, string fileName, bool bypassBlobCreationValidation)
+        private readonly static int MaxBlocksOnBlobBeforeRoll = 49500; //small margin to the practical max of 50k, in case of many multiple writers to the same blob
+
+        public async Task<CloudAppendBlob> GetCloudBlobAsync(CloudStorageAccount storageAccount, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
         {
-            if (cloudAppendBlob != null) return cloudAppendBlob;
+            //if the correct cloud append blob is prepared and below the max block count then return that, otherwise initialize a new cloudappendblob.
+            if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase) && currentCloudAppendBlob.Properties.AppendBlobCommittedBlockCount < MaxBlocksOnBlobBeforeRoll)
+            {
+                return currentCloudAppendBlob;
+            }
+            else if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
+            {
+                //roll the sequence one up
+                currentBlobRollSequence++;
+            }
 
-            var cloudBlobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(folderName);                
+            //try to get a reference to a cloudappendblob which is below the max blocks threshold.
+            for (int i = currentBlobRollSequence; i < 999; i++)
+            {
+                string rolledBlobName = GetRolledBlobName(blobName, i);
+                CloudAppendBlob newCloudAppendBlob = await GetBlobReferenceAsync(storageAccount, blobContainerName, rolledBlobName, bypassBlobCreationValidation);
+                if (newCloudAppendBlob.Properties.AppendBlobCommittedBlockCount < MaxBlocksOnBlobBeforeRoll)
+                {
+                    currentCloudAppendBlob = newCloudAppendBlob;
+                    currentBlobName = blobName;
+                    currentBlobRollSequence = i;
+                    break;
+                }
+            }
+
+            return currentCloudAppendBlob;
+        }
+
+        private string GetRolledBlobName(string blobName, int rollingSequenceNumber)
+        {
+            //On first try just return the unchanged blobname
+            if (rollingSequenceNumber == 0)
+            {
+                return blobName;
+            }
+
+            //append the sequence number to the filename
+            string newFileName = $"{Path.GetFileNameWithoutExtension(blobName)}-{rollingSequenceNumber:D3}{Path.GetExtension(blobName)}";
+            return Path.Combine(Path.GetDirectoryName(blobName), newFileName).Replace('\\', '/');
+        }
+
+        private async Task<CloudAppendBlob> GetBlobReferenceAsync(CloudStorageAccount storageAccount, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
+        {
+            CloudBlobClient cloudBlobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(blobContainerName);
+            await CreateBlobContainerIfNotExistsAsync(cloudBlobContainer, bypassBlobCreationValidation).ConfigureAwait(false);
+
+            CloudAppendBlob newCloudAppendBlob = null;
             try
             {
-                cloudBlobContainer.CreateIfNotExistsAsync().SyncContextSafeWait(waitTimeoutMilliseconds);
-                cloudAppendBlob = cloudBlobContainer.GetAppendBlobReference(fileName);                
-                if (!cloudAppendBlob.ExistsAsync().Result)
-                    cloudAppendBlob.CreateOrReplaceAsync().Wait();                   
+                newCloudAppendBlob = cloudBlobContainer.GetAppendBlobReference(blobName);
+                newCloudAppendBlob.CreateOrReplaceAsync(AccessCondition.GenerateIfNotExistsCondition(), null, null).GetAwaiter().GetResult();
+            }
+            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict && ex.RequestInformation?.ErrorCode == "BlobAlreadyExists")
+            {
+                //StorageException (http 409 conflict, error code BlobAlreadyExists) is thrown due to the AccessCondition. The append blob already exists.
+                //No problem this is expected
+            }
+            catch (Exception ex)
+            {
+                Debugging.SelfLog.WriteLine($"Failed to create blob: {ex}");
+                throw;
+            }
+
+            if (newCloudAppendBlob != null)
+            {
+                //this is the first time the code gets its hands on this blob reference, get the blob properties from azure.
+                //used later on to know when to roll over the file if the 50.000 max blocks is getting close.
+                await newCloudAppendBlob.FetchAttributesAsync().ConfigureAwait(false);
+            }
+
+            return newCloudAppendBlob;
+        }
+
+        private async Task CreateBlobContainerIfNotExistsAsync(CloudBlobContainer cloudBlobContainer, bool bypassBlobCreationValidation)
+        {
+            try
+            {
+                await cloudBlobContainer.CreateIfNotExistsAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -44,9 +118,8 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 if (!bypassBlobCreationValidation)
                 {
                     throw;
-                }                    
+                }
             }
-            return cloudAppendBlob;
 
         }
     }
