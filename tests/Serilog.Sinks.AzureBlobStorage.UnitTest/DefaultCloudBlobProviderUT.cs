@@ -104,6 +104,24 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Equal(secondRolledBlobName, requestedBlob.Name);
         }
 
+        [Fact(DisplayName = "Should return a new cloudblob non-rolled, if previous cloudblob was rolled.")]
+        public async Task ReturnNonRolledBlobReferenceOnInitIfPreviousCloudblobWasRolled()
+        {
+            string blobName = "SomeBlob.log";
+            string rolledBlobName = "SomeBlob-001.log";
+            string newBlobName = "SomeNewBlob.log";
+
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 50000);
+            CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 40000);
+            CloudAppendBlob newCloudAppendBlob = SetupCloudAppendBlobReference(newBlobName, 0);
+
+            CloudAppendBlob requestedBlob = await _defaultCloudBlobProvider.GetCloudBlobAsync(_storageAccount, _blobContainerName, blobName, true);
+            CloudAppendBlob requestednewBlob = await _defaultCloudBlobProvider.GetCloudBlobAsync(_storageAccount, _blobContainerName, newBlobName, true);
+
+            Assert.Equal(rolledBlobName, requestedBlob.Name);
+            Assert.Equal(newBlobName, requestednewBlob.Name);
+        }
+
         [Fact(DisplayName = "Should throw exception if container cannot be created and bypass is false.")]
         public async Task ThrowExceptionIfContainerCannotBeCreatedAndNoBypass()
         {

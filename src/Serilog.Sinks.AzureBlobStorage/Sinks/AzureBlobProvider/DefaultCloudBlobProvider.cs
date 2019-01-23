@@ -32,17 +32,29 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
         public async Task<CloudAppendBlob> GetCloudBlobAsync(CloudStorageAccount storageAccount, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
         {
-            //if the correct cloud append blob is prepared and below the max block count then return that, otherwise initialize a new cloudappendblob.
             if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase) && currentCloudAppendBlob.Properties.AppendBlobCommittedBlockCount < MaxBlocksOnBlobBeforeRoll)
             {
+                //if the correct cloud append blob is prepared and below the max block count then return that
                 return currentCloudAppendBlob;
             }
             else if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
             {
-                //roll the sequence one up
+                //same blob name, but the max blocks have been reached, roll the sequence one up and get a new cloud blob reference
                 currentBlobRollSequence++;
+                await GetCloudAppendBlobAsync(storageAccount, blobContainerName, blobName, bypassBlobCreationValidation);
+            }
+            else
+            {
+                //first time to get a cloudblob or the blobname has changed
+                currentBlobRollSequence = 0;
+                await GetCloudAppendBlobAsync(storageAccount, blobContainerName, blobName, bypassBlobCreationValidation);
             }
 
+            return currentCloudAppendBlob;
+        }
+
+        private async Task GetCloudAppendBlobAsync(CloudStorageAccount storageAccount, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
+        {
             //try to get a reference to a cloudappendblob which is below the max blocks threshold.
             for (int i = currentBlobRollSequence; i < 999; i++)
             {
@@ -56,8 +68,6 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                     break;
                 }
             }
-
-            return currentCloudAppendBlob;
         }
 
         private string GetRolledBlobName(string blobName, int rollingSequenceNumber)
