@@ -33,7 +33,6 @@ namespace Serilog.Sinks.AzureBlobStorage
         readonly ITextFormatter textFormatter;
         readonly CloudStorageAccount storageAccount;
         readonly string storageFolderName;
-        readonly string storageFileName;
         readonly bool bypassFolderCreationValidation;
         readonly ICloudBlobProvider cloudBlobProvider;
         readonly BlobNameFactory blobNameFactory;
@@ -69,7 +68,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             this.storageAccount = storageAccount;
             this.storageFolderName = storageFolderName;
-            this.storageFileName = storageFileName;
+            this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassFolderCreationValidation = bypassFolderCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
             this.blobNameFactory = new BlobNameFactory(storageFileName);
