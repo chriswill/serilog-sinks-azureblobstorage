@@ -6,6 +6,8 @@ Initial beta release
 1.0.0.1 12/10/2018
 Fixed a bug where multiple logging statements would post only the first statement
 
-
+1.0.1 1/22/2019
+Fixed issue with file name template in the batching provider
 Edited readme
 Move Test project within folder
+Changed versioning back to major.minor.patch format
