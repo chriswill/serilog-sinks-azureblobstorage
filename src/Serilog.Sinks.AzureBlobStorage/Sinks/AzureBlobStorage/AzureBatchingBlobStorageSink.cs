@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
@@ -31,25 +30,28 @@ namespace Serilog.Sinks.AzureBlobStorage
     /// </summary>
     public class AzureBatchingBlobStorageSink : PeriodicBatchingSink
     {
-        readonly ITextFormatter textFormatter;        
-        readonly CloudStorageAccount storageAccount;
-        readonly string storageFolderName;
-        readonly bool bypassBlobCreationValidation;
-        readonly ICloudBlobProvider cloudBlobProvider;
-        readonly BlobNameFactory blobNameFactory;
-        readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
-        readonly IAppendBlobBlockWriter appendBlobBlockWriter;
+        private readonly ITextFormatter textFormatter;
+        private readonly CloudStorageAccount storageAccount;
+        private readonly string storageFolderName;
+        private readonly bool bypassBlobCreationValidation;
+        private readonly ICloudBlobProvider cloudBlobProvider;
+        private readonly BlobNameFactory blobNameFactory;
+        private readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
+        private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
         /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
+        /// <param name="textFormatter">The text formatter to use.</param>
         /// <param name="batchSizeLimit"></param>
         /// <param name="period"></param>
         /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="appendBlobBlockPreparer"></param>
+        /// <param name="appendBlobBlockWriter"></param>
         public AzureBatchingBlobStorageSink(
             CloudStorageAccount storageAccount,
             IFormatProvider formatProvider,
@@ -76,6 +78,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="storageFileName">File name that log entries will be written to. Note: Optional, setting this may impact performance</param>        
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="appendBlobBlockPreparer"></param>
+        /// <param name="appendBlobBlockWriter"></param>
         public AzureBatchingBlobStorageSink(
             CloudStorageAccount storageAccount,
             ITextFormatter textFormatter,

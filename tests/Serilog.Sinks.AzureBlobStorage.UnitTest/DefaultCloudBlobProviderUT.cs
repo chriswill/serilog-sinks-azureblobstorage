@@ -14,13 +14,13 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
     public class DefaultCloudBlobProviderUT
     {
-        readonly CloudStorageAccount _storageAccount = A.Fake<CloudStorageAccount>(opt => opt.WithArgumentsForConstructor(new object[] { new StorageCredentials(), "account", "suffix.blobs.com", true }));
-        readonly CloudBlobClient _blobClient = A.Fake<CloudBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com") }));
+        private readonly CloudStorageAccount _storageAccount = A.Fake<CloudStorageAccount>(opt => opt.WithArgumentsForConstructor(new object[] { new StorageCredentials(), "account", "suffix.blobs.com", true }));
+        private readonly CloudBlobClient _blobClient = A.Fake<CloudBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com") }));
 
-        readonly string _blobContainerName = "logcontainer";
-        readonly CloudBlobContainer _blobContainer = A.Fake<CloudBlobContainer>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com/logcontainer") }));
+        private readonly string _blobContainerName = "logcontainer";
+        private readonly CloudBlobContainer _blobContainer = A.Fake<CloudBlobContainer>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com/logcontainer") }));
 
-        readonly DefaultCloudBlobProvider _defaultCloudBlobProvider = new DefaultCloudBlobProvider();
+        private readonly DefaultCloudBlobProvider _defaultCloudBlobProvider = new DefaultCloudBlobProvider();
 
 
         public DefaultCloudBlobProviderUT()

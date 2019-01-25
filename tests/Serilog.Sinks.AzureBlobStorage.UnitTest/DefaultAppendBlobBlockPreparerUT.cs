@@ -9,12 +9,12 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
     public class DefaultAppendBlobBlockPreparerUT
     {
-        readonly DefaultAppendBlobBlockPreparer _defaultAppendBlobBlockPreparer;
-        readonly ITextFormatter _defaultTextFormatter;
-        readonly IEnumerable<LogEvent> _emptyLogEventEnumerable;
+        private readonly DefaultAppendBlobBlockPreparer _defaultAppendBlobBlockPreparer;
+        private readonly ITextFormatter _defaultTextFormatter;
+        private readonly IEnumerable<LogEvent> _emptyLogEventEnumerable;
 
-        readonly LogEvent _tooLargeLogEvent= new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string('*', 1024 * 1024 * 6))) });
-        readonly LogEvent _largeLogEvent = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string ('*', 1024 * 512))) });
+        private readonly LogEvent _tooLargeLogEvent= new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string('*', 1024 * 1024 * 6))) });
+        private readonly LogEvent _largeLogEvent = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string ('*', 1024 * 512))) });
 
         public DefaultAppendBlobBlockPreparerUT()
         {

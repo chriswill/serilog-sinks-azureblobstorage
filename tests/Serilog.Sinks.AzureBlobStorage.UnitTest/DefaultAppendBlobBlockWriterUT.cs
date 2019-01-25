@@ -5,23 +5,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using FakeItEasy;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Serilog.Events;
-using Serilog.Formatting;
 using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
     public class DefaultAppendBlobBlockWriterUT
     {
-        readonly DefaultAppendBlobBlockWriter _defaultAppendBlobBlockWriter;
+        private readonly DefaultAppendBlobBlockWriter _defaultAppendBlobBlockWriter;
 
-        readonly CloudAppendBlob _cloudBlobFake= A.Fake<CloudAppendBlob>(opt=> opt.WithArgumentsForConstructor(new[] { new Uri("https://blob.com/test/test.txt") }));
+        private readonly CloudAppendBlob _cloudBlobFake= A.Fake<CloudAppendBlob>(opt=> opt.WithArgumentsForConstructor(new[] { new Uri("https://blob.com/test/test.txt") }));
 
-        readonly IEnumerable<string> _noBlocksToWrite = Enumerable.Empty<string>();
-        readonly IEnumerable<string> _singleBlockToWrite = new[] { new string('*', 1024 * 1024 * 3) };
-        readonly IEnumerable<string> _multipleBlocksToWrite = new[] { new string('*', 1024 * 512 * 3), new string('*', 1024 * 512 * 3) };
-
-        readonly ICollection<Stream> _writtenBlocks = new List<Stream>();
+        private readonly IEnumerable<string> _noBlocksToWrite = Enumerable.Empty<string>();
+        private readonly IEnumerable<string> _singleBlockToWrite = new[] { new string('*', 1024 * 1024 * 3) };
+        private readonly IEnumerable<string> _multipleBlocksToWrite = new[] { new string('*', 1024 * 512 * 3), new string('*', 1024 * 512 * 3) };        
 
         public DefaultAppendBlobBlockWriterUT()
         {

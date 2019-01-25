@@ -27,15 +27,15 @@ namespace Serilog.Sinks.AzureBlobStorage
     /// </summary>
     public class AzureBlobStorageSink : ILogEventSink
     {
-        readonly int waitTimeoutMilliseconds = Timeout.Infinite;
-        readonly ITextFormatter textFormatter;
-        readonly CloudStorageAccount storageAccount;
-        readonly string storageFolderName;
-        readonly bool bypassFolderCreationValidation;
-        readonly ICloudBlobProvider cloudBlobProvider;
-        readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
-        readonly IAppendBlobBlockWriter appendBlobBlockWriter;
-        readonly BlobNameFactory blobNameFactory;
+        private readonly int waitTimeoutMilliseconds = Timeout.Infinite;
+        private readonly ITextFormatter textFormatter;
+        private readonly CloudStorageAccount storageAccount;
+        private readonly string storageFolderName;
+        private readonly bool bypassFolderCreationValidation;
+        private readonly ICloudBlobProvider cloudBlobProvider;
+        private readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
+        private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
+        private readonly BlobNameFactory blobNameFactory;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -46,6 +46,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="storageFileName">File name that log entries will be written to.</param>        
         /// <param name="bypassFolderCreationValidation">Bypass the exception in case the folder creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="appendBlobBlockPreparer"></param>
+        /// <param name="appendBlobBlockWriter"></param>
         public AzureBlobStorageSink(
             CloudStorageAccount storageAccount,
             ITextFormatter textFormatter,
@@ -70,7 +72,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             this.storageAccount = storageAccount;
             this.storageFolderName = storageFolderName;
-            this.blobNameFactory = new BlobNameFactory(storageFileName);
+            blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassFolderCreationValidation = bypassFolderCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
             this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();

@@ -12,8 +12,8 @@ namespace Serilog.Sinks.AzureBlobStorage
     /// </summary>
     public class BlobNameFactory
     {
-        readonly char[] DATE_FORMAT_ORDER = { 'y', 'M', 'd', 'H', 'm' };
-        string baseBlobName;
+        private readonly char[] DATE_FORMAT_ORDER = { 'y', 'M', 'd', 'H', 'm' };
+        private readonly string baseBlobName;
 
         public BlobNameFactory(string baseBlobName)
         {
@@ -24,7 +24,6 @@ namespace Serilog.Sinks.AzureBlobStorage
 
         public string GetBlobName(DateTimeOffset dtoToApply)
         {
-            string blobName = "";
             StringBuilder sb = new StringBuilder();
 
             // Example:
@@ -41,24 +40,20 @@ namespace Serilog.Sinks.AzureBlobStorage
                     sb.Append(baseBlobName.Substring(i));
                     break;
                 }
-                else
+
+                if (i != openBraceIndex)
                 {
-                    if (i != openBraceIndex)
-                    {
-                        sb.Append(baseBlobName.Substring(i, openBraceIndex - i));
-                        i = openBraceIndex;
-                    }
-                    
-                    var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
-                    var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
-                    sb.Append(dtoToApply.ToString(dateFormat));
-                    i = closeBraceIndex + 1;
+                    sb.Append(baseBlobName.Substring(i, openBraceIndex - i));
+                    i = openBraceIndex;
                 }
+                    
+                var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
+                var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+                sb.Append(dtoToApply.ToString(dateFormat));
+                i = closeBraceIndex + 1;
             }
 
-            blobName = sb.ToString();
-
-            return blobName;
+            return sb.ToString();
         }
 
         /// <summary>
@@ -76,32 +71,30 @@ namespace Serilog.Sinks.AzureBlobStorage
                 {
                     break;
                 }
-                else
+
+                // Get the date format characters within the current pair of curly braces.
+                var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
+                var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+
+                // Keep checking the date date format string until all characters within have been verified.
+                int lastIndex = 0;
+                do
                 {
-                    // Get the date format characters within the current pair of curly braces.
-                    var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
-                    var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+                    // The index of the DATE_FORMAT_ORDER array is beyond the last element,
+                    // by default the base blob name is invalid.
+                    if (j >= DATE_FORMAT_ORDER.Length)
+                        throw new ArgumentException($"{nameof(baseBlobName)} has unexpected date format characters.");
 
-                    // Keep checking the date date format string until all characters within have been verified.
-                    int lastIndex = 0;
-                    do
-                    {
-                        // The index of the DATE_FORMAT_ORDER array is beyond the last element,
-                        // by default the base blob name is invalid.
-                        if (j >= DATE_FORMAT_ORDER.Length)
-                            throw new ArgumentException($"{nameof(baseBlobName)} has unexpected date format characters.");
+                    // Get the last index of the currently expected format character. If that
+                    // character is not found, then the characters are out of order or an
+                    // unexpected character was provided.
+                    lastIndex = dateFormat.LastIndexOf(DATE_FORMAT_ORDER[j++]);
+                    if (lastIndex < 0)
+                        throw new ArgumentException($"{nameof(baseBlobName)} has unexpectently encountered the format character '{DATE_FORMAT_ORDER[j - 1]}'.");
 
-                        // Get the last index of the currently expected format character. If that
-                        // character is not found, then the characters are out of order or an
-                        // unexpected character was provided.
-                        lastIndex = dateFormat.LastIndexOf(DATE_FORMAT_ORDER[j++]);
-                        if (lastIndex < 0)
-                            throw new ArgumentException($"{nameof(baseBlobName)} has unexpectently encountered the format character '{DATE_FORMAT_ORDER[j - 1]}'.");
+                } while (lastIndex + 1 < dateFormat.Length);
 
-                    } while (lastIndex + 1 < dateFormat.Length);
-
-                    i = closeBraceIndex + 1;
-                }
+                i = closeBraceIndex + 1;
             }
         }
     }
