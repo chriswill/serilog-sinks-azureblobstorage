@@ -11,3 +11,6 @@ Fixed issue with file name template in the batching provider
 Edited readme
 Move Test project within folder
 Changed versioning back to major.minor.patch format
+
+1.0.2 1/24/2019
+Sink refactoring, with changes to support AppendBlob size limits
