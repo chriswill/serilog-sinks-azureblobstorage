@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.IO;
-using System.Text;
 using System.Threading;
 using Microsoft.WindowsAzure.Storage;
 using Serilog.Core;
@@ -35,6 +33,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         readonly string storageFolderName;
         readonly bool bypassFolderCreationValidation;
         readonly ICloudBlobProvider cloudBlobProvider;
+        readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
+        readonly IAppendBlobBlockWriter appendBlobBlockWriter;
         readonly BlobNameFactory blobNameFactory;
 
         /// <summary>
@@ -52,7 +52,9 @@ namespace Serilog.Sinks.AzureBlobStorage
             string storageFolderName = null,
             string storageFileName = null,
             bool bypassFolderCreationValidation = false,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
+            IAppendBlobBlockWriter appendBlobBlockWriter = null)
         {
             this.textFormatter = textFormatter;
 
@@ -71,7 +73,8 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassFolderCreationValidation = bypassFolderCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
-            this.blobNameFactory = new BlobNameFactory(storageFileName);
+            this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
+            this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
         }
 
         /// <summary>
@@ -80,25 +83,11 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
         {
-            var blob = cloudBlobProvider.GetCloudBlob(storageAccount, storageFolderName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassFolderCreationValidation);
+            var blob = cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageFolderName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassFolderCreationValidation).SyncContextSafeWait(waitTimeoutMilliseconds);
 
-            StringBuilder sb = new StringBuilder();
-            TextWriter tw = new StringWriter(sb);
+            var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, new[] { logEvent });
 
-            textFormatter.Format(logEvent, tw);
-            tw.Flush();
-
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (StreamWriter writer = new StreamWriter(stream))
-                {
-                    writer.Write(sb.ToString());
-                    writer.Flush();
-                    stream.Position = 0;
-
-                    blob.AppendBlockAsync(stream).SyncContextSafeWait(waitTimeoutMilliseconds);
-                }
-            }
+            appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).SyncContextSafeWait(waitTimeoutMilliseconds);
         }
     }
 }
