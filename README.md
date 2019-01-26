@@ -12,11 +12,11 @@ The AzureBlobStorage sink appends data to the blob in text format. Here's a samp
 [2018-10-17 23:03:56 INF] Hello World!
 ```
 
-**Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - .NET 4.5, .Net Standard 2.0
+**Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - .NET 4.5, .Net Standard 1,3
 
 **Usage**
 ```csharp
-var connectionString = CloudStorageAccount.FromConfigurationSetting("MyStorage");
+var connectionString = CloudStorageAccount.Parse("ConnnectionString");
 
 var log = new LoggerConfiguration()
     .WriteTo.AzureBlobStorage(connectionString)
