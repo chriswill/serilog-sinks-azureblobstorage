@@ -9,36 +9,36 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
     public class DefaultAppendBlobBlockPreparerUT
     {
-        readonly DefaultAppendBlobBlockPreparer _defaultAppendBlobBlockPreparer;
-        readonly ITextFormatter _defaultTextFormatter;
-        readonly IEnumerable<LogEvent> _emptyLogEventEnumerable;
+        private readonly DefaultAppendBlobBlockPreparer defaultAppendBlobBlockPreparer;
+        private readonly ITextFormatter defaultTextFormatter;
+        private readonly IEnumerable<LogEvent> emptyLogEventEnumerable;
 
-        readonly LogEvent _tooLargeLogEvent= new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string('*', 1024 * 1024 * 6))) });
-        readonly LogEvent _largeLogEvent = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string ('*', 1024 * 512))) });
+        private readonly LogEvent tooLargeLogEvent= new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string('*', 1024 * 1024 * 6))) });
+        private readonly LogEvent largeLogEvent = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, MessageTemplate.Empty, new[] { new LogEventProperty("BigProp", new Serilog.Events.ScalarValue(new string ('*', 1024 * 512))) });
 
         public DefaultAppendBlobBlockPreparerUT()
         {
-            _defaultAppendBlobBlockPreparer = new DefaultAppendBlobBlockPreparer();
-            _defaultTextFormatter = new Serilog.Formatting.Json.JsonFormatter();
-            _emptyLogEventEnumerable = Enumerable.Empty<LogEvent>();
+            defaultAppendBlobBlockPreparer = new DefaultAppendBlobBlockPreparer();
+            defaultTextFormatter = new Formatting.Json.JsonFormatter();
+            emptyLogEventEnumerable = Enumerable.Empty<LogEvent>();
         }
 
         [Fact(DisplayName = "Should throw validation exception due to missing ITextFormatter instance.")]
         public void MissingITextFormatterInstance()
         {
-            Assert.Throws<ArgumentNullException>(() => _defaultAppendBlobBlockPreparer.PrepareAppendBlocks(null, _emptyLogEventEnumerable));
+            Assert.Throws<ArgumentNullException>(() => defaultAppendBlobBlockPreparer.PrepareAppendBlocks(null, emptyLogEventEnumerable));
         }
 
         [Fact(DisplayName = "Should throw validation exception due to missing IEnumerable<LogEvent> instance.")]
         public void MissingIEnumerableLogEventsInstance()
         {
-            Assert.Throws<ArgumentNullException>(() => _defaultAppendBlobBlockPreparer.PrepareAppendBlocks(_defaultTextFormatter, null));
+            Assert.Throws<ArgumentNullException>(() => defaultAppendBlobBlockPreparer.PrepareAppendBlocks(defaultTextFormatter, null));
         }
 
         [Fact(DisplayName = "Should return an empty IEnumerable<string> when an empty IEnumberable<LogEvent> goes in.")]
         public void ReturnEmptyResultWhenInputIsEmpty()
         {
-            var preparedResult = _defaultAppendBlobBlockPreparer.PrepareAppendBlocks(_defaultTextFormatter, _emptyLogEventEnumerable);
+            var preparedResult = defaultAppendBlobBlockPreparer.PrepareAppendBlocks(defaultTextFormatter, emptyLogEventEnumerable);
 
             Assert.Empty(preparedResult);
         }
@@ -46,9 +46,9 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [Fact(DisplayName = "Should drop LogEvents that when formatted are greater than 4MB")]
         public void DropTooLargeLogEvents()
         {
-            var logEvents = new[] { _tooLargeLogEvent };
+            var logEvents = new[] { tooLargeLogEvent };
 
-            var preparedResult = _defaultAppendBlobBlockPreparer.PrepareAppendBlocks(_defaultTextFormatter, logEvents);
+            var preparedResult = defaultAppendBlobBlockPreparer.PrepareAppendBlocks(defaultTextFormatter, logEvents);
 
             Assert.Empty(preparedResult);
         }
@@ -56,9 +56,9 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [Fact(DisplayName = "Should return multiple blocks when the log events overflow the 4mb block size.")]
         public void ReturnMultipleBlocksWhenLogEventsOverflow4MB()
         {
-            var logEvents = new[] { _largeLogEvent, _largeLogEvent , _largeLogEvent , _largeLogEvent , _largeLogEvent , _largeLogEvent , _largeLogEvent, _largeLogEvent, _largeLogEvent };
+            var logEvents = new[] { largeLogEvent, largeLogEvent , largeLogEvent , largeLogEvent , largeLogEvent , largeLogEvent , largeLogEvent, largeLogEvent, largeLogEvent };
 
-            var preparedResult = _defaultAppendBlobBlockPreparer.PrepareAppendBlocks(_defaultTextFormatter, logEvents);
+            var preparedResult = defaultAppendBlobBlockPreparer.PrepareAppendBlocks(defaultTextFormatter, logEvents);
 
             Assert.NotEmpty(preparedResult);
             Assert.True(preparedResult.Count() == 2);
@@ -67,9 +67,9 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [Fact(DisplayName = "Should return single block when the log events stay below the formatted size of 4mb.")]
         public void ReturnSinglelocksWhenLogEventsStayBelow4MBLimit()
         {
-            var logEvents = new[] { _largeLogEvent, _largeLogEvent, _largeLogEvent};
+            var logEvents = new[] { largeLogEvent, largeLogEvent, largeLogEvent};
 
-            var preparedResult = _defaultAppendBlobBlockPreparer.PrepareAppendBlocks(_defaultTextFormatter, logEvents);
+            var preparedResult = defaultAppendBlobBlockPreparer.PrepareAppendBlocks(defaultTextFormatter, logEvents);
 
             Assert.NotEmpty(preparedResult);
             Assert.True(preparedResult.Count() == 1);

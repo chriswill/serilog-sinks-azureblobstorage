@@ -8,7 +8,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
-    class DefaultAppendBlobBlockWriter : IAppendBlobBlockWriter
+    internal class DefaultAppendBlobBlockWriter : IAppendBlobBlockWriter
     {
 
         public async Task WriteBlocksToAppendBlobAsync(CloudAppendBlob cloudAppendBlob, IEnumerable<string> blocks)

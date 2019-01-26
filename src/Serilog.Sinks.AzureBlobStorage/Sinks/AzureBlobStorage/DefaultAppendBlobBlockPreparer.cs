@@ -7,9 +7,9 @@ using Serilog.Formatting;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
-    class DefaultAppendBlobBlockPreparer : IAppendBlobBlockPreparer
+    internal class DefaultAppendBlobBlockPreparer : IAppendBlobBlockPreparer
     {
-        private static readonly int MaxAppendBlobBlockSize = 1024 * 1024 * 4;
+        private const int MaxAppendBlobBlockSize = 1024 * 1024 * 4;
 
         public IEnumerable<string> PrepareAppendBlocks(ITextFormatter textFormatter, IEnumerable<LogEvent> logEvents)
         {
@@ -57,7 +57,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                     }
 
                     //Add the log event to the block
-                    currentBlockContent.Append(tempStringWriter.ToString());
+                    currentBlockContent.Append(tempStringWriter);
                     currentBlockSize += logEventSize;
                 }
             }
