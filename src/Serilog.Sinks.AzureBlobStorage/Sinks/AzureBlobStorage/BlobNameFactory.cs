@@ -46,7 +46,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                     sb.Append(baseBlobName.Substring(i, openBraceIndex - i));
                     i = openBraceIndex;
                 }
-                    
+
                 var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
                 var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
                 sb.Append(dtoToApply.ToString(dateFormat));
