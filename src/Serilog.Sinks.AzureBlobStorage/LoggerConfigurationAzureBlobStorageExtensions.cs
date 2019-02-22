@@ -42,7 +42,7 @@ namespace Serilog
         /// </summary>
         public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(2);
 
-        
+
         internal const string DefaultConsoleOutputTemplate = "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 
         /// <summary>
@@ -53,26 +53,26 @@ namespace Serilog
         /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
         /// key used for the events so is not enabled by default.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
-        /// <param name="period">The time to wait between checking for event batches.</param>        
+        /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud Blob provider to get current log blob.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
-            CloudStorageAccount storageAccount,            
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,            
-            string storageFolderName = null,
+            CloudStorageAccount storageAccount,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            string storageContainerName = null,
             string storageFileName = null,
             string outputTemplate = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
-            int? batchPostingLimit = null,            
+            int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null)
@@ -90,11 +90,11 @@ namespace Serilog
                 new MessageTemplateTextFormatter(outputTemplate, formatProvider),
                 storageAccount,
                 restrictedToMinimumLevel,
-                storageFolderName,
+                storageContainerName,
                 storageFileName,
                 writeInBatches,
                 period,
-                batchPostingLimit,                
+                batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider);
         }
@@ -108,25 +108,25 @@ namespace Serilog
         /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
-        /// <param name="period">The time to wait between checking for event batches.</param>        
+        /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
-            string connectionString,            
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,            
-            string storageFolderName = null,
+            string connectionString,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            string storageContainerName = null,
             string storageFileName = null,
             string outputTemplate = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
-            int? batchPostingLimit = null,            
+            int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null)
@@ -144,11 +144,11 @@ namespace Serilog
                 new MessageTemplateTextFormatter(outputTemplate, formatProvider),
                 connectionString,
                 restrictedToMinimumLevel,
-                storageFolderName,
+                storageContainerName,
                 storageFileName,
                 writeInBatches,
                 period,
-                batchPostingLimit,                
+                batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider);
         }
@@ -164,12 +164,12 @@ namespace Serilog
         /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
         /// key used for the events so is not enabled by default.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
-        /// <param name="period">The time to wait between checking for event batches.</param>        
+        /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
@@ -177,9 +177,9 @@ namespace Serilog
             this LoggerSinkConfiguration loggerConfiguration,
             string sharedAccessSignature,
             string accountName,
-            Uri blobEndpoint = null,            
-            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,            
-            string storageFolderName = null,
+            Uri blobEndpoint = null,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            string storageContainerName = null,
             string storageFileName = null,
             string outputTemplate = null,
             bool writeInBatches = false,
@@ -205,11 +205,11 @@ namespace Serilog
                 accountName,
                 blobEndpoint,
                 restrictedToMinimumLevel,
-                storageFolderName,
+                storageContainerName,
                 storageFileName,
                 writeInBatches,
                 period,
-                batchPostingLimit,                
+                batchPostingLimit,
                 cloudBlobProvider);
         }
 
@@ -220,12 +220,12 @@ namespace Serilog
         /// <param name="formatter">Use a Serilog ITextFormatter such as CompactJsonFormatter to store object in Azure blob</param>
         /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
         /// key used for the events so is not enabled by default.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
-        /// <param name="period">The time to wait between checking for event batches.</param>        
+        /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
@@ -233,13 +233,13 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
-            CloudStorageAccount storageAccount,            
+            CloudStorageAccount storageAccount,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
-            string storageFolderName = null,
+            string storageContainerName = null,
             string storageFileName = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
-            int? batchPostingLimit = null,            
+            int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null)
         {
@@ -251,8 +251,8 @@ namespace Serilog
             try
             {
                 sink = writeInBatches ?
-                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount, formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageFolderName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider) :
-                    new AzureBlobStorageSink(storageAccount, formatter, storageFolderName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider);
+                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount, formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider) :
+                    new AzureBlobStorageSink(storageAccount, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider);
             }
             catch (Exception ex)
             {
@@ -271,12 +271,12 @@ namespace Serilog
         /// <param name="formatter">Use a Serilog ITextFormatter such as CompactJsonFormatter to store object in data column of Azure blob</param>
         /// <param name="connectionString">The Cloud Storage Account connection string to use to insert the log entries to.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
         /// key used for the events so is not enabled by default.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
-        /// <param name="period">The time to wait between checking for event batches.</param>        
+        /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
@@ -284,13 +284,13 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
-            string connectionString,            
+            string connectionString,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
-            string storageFolderName = null,
+            string storageContainerName = null,
             string storageFileName = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
-            int? batchPostingLimit = null,            
+            int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null)
         {
@@ -301,7 +301,7 @@ namespace Serilog
             try
             {
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageFolderName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider);
+                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider);
             }
             catch (Exception ex)
             {
@@ -322,12 +322,12 @@ namespace Serilog
         /// <param name="accountName">The storage account name.</param>
         /// <param name="blobEndpoint">The (optional) blob endpoint. Only needed for testing.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
         /// key used for the events so is not enabled by default.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
-        /// <param name="period">The time to wait between checking for event batches.</param>        
+        /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
@@ -335,14 +335,14 @@ namespace Serilog
             this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
             string sharedAccessSignature,
-            string accountName,            
+            string accountName,
             Uri blobEndpoint = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
-            string storageFolderName = null,
+            string storageContainerName = null,
             string storageFileName = null,
             bool writeInBatches = false,
             TimeSpan? period = null,
-            int? batchPostingLimit = null,            
+            int? batchPostingLimit = null,
             ICloudBlobProvider cloudBlobProvider = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
@@ -364,7 +364,7 @@ namespace Serilog
                 }
 
                 // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageFolderName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider);
+                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider);
             }
             catch (Exception ex)
             {

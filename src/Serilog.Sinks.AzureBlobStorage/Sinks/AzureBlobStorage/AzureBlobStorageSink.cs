@@ -30,8 +30,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         private readonly int waitTimeoutMilliseconds = Timeout.Infinite;
         private readonly ITextFormatter textFormatter;
         private readonly CloudStorageAccount storageAccount;
-        private readonly string storageFolderName;
-        private readonly bool bypassFolderCreationValidation;
+        private readonly string storageContainerName;
+        private readonly bool bypassContainerCreationValidation;
         private readonly ICloudBlobProvider cloudBlobProvider;
         private readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
         private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
@@ -42,27 +42,27 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// </summary>
         /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
         /// <param name="textFormatter"></param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
-        /// <param name="storageFileName">File name that log entries will be written to.</param>        
-        /// <param name="bypassFolderCreationValidation">Bypass the exception in case the folder creation fails.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
+        /// <param name="storageFileName">File name that log entries will be written to.</param>
+        /// <param name="bypassContainerCreationValidation">Bypass the exception in case the container creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
         public AzureBlobStorageSink(
             CloudStorageAccount storageAccount,
             ITextFormatter textFormatter,
-            string storageFolderName = null,
+            string storageContainerName = null,
             string storageFileName = null,
-            bool bypassFolderCreationValidation = false,
+            bool bypassContainerCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null)
         {
             this.textFormatter = textFormatter;
 
-            if (string.IsNullOrEmpty(storageFolderName))
+            if (string.IsNullOrEmpty(storageContainerName))
             {
-                storageFolderName = "logs";
+                storageContainerName = "logs";
             }
 
             if (string.IsNullOrEmpty(storageFileName))
@@ -71,9 +71,9 @@ namespace Serilog.Sinks.AzureBlobStorage
             }
 
             this.storageAccount = storageAccount;
-            this.storageFolderName = storageFolderName;
+            this.storageContainerName = storageContainerName;
             blobNameFactory = new BlobNameFactory(storageFileName);
-            this.bypassFolderCreationValidation = bypassFolderCreationValidation;
+            this.bypassContainerCreationValidation = bypassContainerCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
             this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
             this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
@@ -85,7 +85,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
         {
-            var blob = cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageFolderName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassFolderCreationValidation).SyncContextSafeWait(waitTimeoutMilliseconds);
+            var blob = cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassContainerCreationValidation).SyncContextSafeWait(waitTimeoutMilliseconds);
 
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, new[] { logEvent });
 

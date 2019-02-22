@@ -32,7 +32,7 @@ namespace Serilog.Sinks.AzureBlobStorage
     {
         private readonly ITextFormatter textFormatter;
         private readonly CloudStorageAccount storageAccount;
-        private readonly string storageFolderName;
+        private readonly string storageContainerName;
         private readonly bool bypassBlobCreationValidation;
         private readonly ICloudBlobProvider cloudBlobProvider;
         private readonly BlobNameFactory blobNameFactory;
@@ -47,7 +47,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="textFormatter">The text formatter to use.</param>
         /// <param name="batchSizeLimit"></param>
         /// <param name="period"></param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to.</param>
+        /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="appendBlobBlockPreparer"></param>
@@ -58,12 +58,12 @@ namespace Serilog.Sinks.AzureBlobStorage
             ITextFormatter textFormatter,
             int batchSizeLimit,
             TimeSpan period,
-            string storageFolderName = null,
+            string storageContainerName = null,
             string storageFileName = null,
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null)
-            : this(storageAccount, textFormatter, batchSizeLimit, period, storageFolderName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter)
+            : this(storageAccount, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter)
         {
         }
 
@@ -74,8 +74,8 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="textFormatter"></param>
         /// <param name="batchSizeLimit"></param>
         /// <param name="period"></param>
-        /// <param name="storageFolderName">Folder name that log entries will be written to. Note: Optional, setting this may impact performance</param>
-        /// <param name="storageFileName">File name that log entries will be written to. Note: Optional, setting this may impact performance</param>        
+        /// <param name="storageContainerName">Container where the log entries will be written to. Note: Optional, setting this may impact performance</param>
+        /// <param name="storageFileName">File name that log entries will be written to. Note: Optional, setting this may impact performance</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="appendBlobBlockPreparer"></param>
@@ -85,7 +85,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ITextFormatter textFormatter,
             int batchSizeLimit,
             TimeSpan period,
-            string storageFolderName = null,
+            string storageContainerName = null,
             string storageFileName = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
@@ -94,11 +94,11 @@ namespace Serilog.Sinks.AzureBlobStorage
             : base(batchSizeLimit, period)
         {
 
-            this.textFormatter = textFormatter;            
+            this.textFormatter = textFormatter;
 
-            if (string.IsNullOrEmpty(storageFolderName))
+            if (string.IsNullOrEmpty(storageContainerName))
             {
-                storageFolderName = "logs";
+                storageContainerName = "logs";
             }
 
             if (string.IsNullOrEmpty(storageFileName))
@@ -107,7 +107,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             }
 
             this.storageAccount = storageAccount;
-            this.storageFolderName = storageFolderName;
+            this.storageContainerName = storageContainerName;
             this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassBlobCreationValidation = bypassBlobCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
@@ -121,7 +121,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             if (lastEvent == null)
                 return;
 
-            var blob = await cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageFolderName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation).ConfigureAwait(false);
+            var blob = await cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation).ConfigureAwait(false);
 
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, events);
 
