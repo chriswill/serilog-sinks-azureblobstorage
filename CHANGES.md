@@ -1,5 +1,8 @@
 # Changes
 
+### 1.1.1 2/26/2019
+* Updated Readme.md to reflect new configuration change (folderName ==> containerName). The 1.0.4 release should have been incremented to 1.1.0 because it introduced a possible breaking change to configuration settings, so we're catching up now.
+
 ### 1.0.4 2/22/2019
 * Renamed references to "folder" with "container" in source property names and VS doc for greater clarity
 
