@@ -74,7 +74,7 @@ It is possible to configure the sink using [Serilog.Settings.Configuration](http
 ```json
 "Serilog": {
   "WriteTo": [
-    {"Name": "AzureBlobStorage", "Args": {"connectionString": "", "storageFolderName": "", "storageFileName": ""}}
+    {"Name": "AzureBlobStorage", "Args": {"connectionString": "", "storageContainerName": "", "storageFileName": ""}}
   ]
 }
 ```
