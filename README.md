@@ -92,7 +92,7 @@ To use the file sink with the [Serilog.Settings.AppSettings](https://github.com/
 Install-Package Serilog.Settings.AppSettings
 ```
 
-Instead of configuring the logger in code, call `ReadFrom.AppSettings()`:
+Instead of configuring the logger in code, call 'ReadFrom.AppSettings()':
 
 ```csharp
 var log = new LoggerConfiguration()
@@ -100,7 +100,7 @@ var log = new LoggerConfiguration()
     .CreateLogger();
 ```
 
-In your application's `App.config` or `Web.config` file, specify the file sink assembly and required path format under the `<appSettings>` node:
+In your application's 'App.config' or 'Web.config' file, specify the file sink assembly and required path format under the '<appSettings>' node:
 
 ```xml
 <configuration>

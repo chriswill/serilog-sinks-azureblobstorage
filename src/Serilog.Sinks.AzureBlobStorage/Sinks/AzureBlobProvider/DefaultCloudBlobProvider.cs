@@ -28,7 +28,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
         private string currentBlobName = string.Empty;
         private int currentBlobRollSequence = 0;
 
-        private readonly static int MaxBlocksOnBlobBeforeRoll = 49500; //small margin to the practical max of 50k, in case of many multiple writers to the same blob
+        private static readonly int MaxBlocksOnBlobBeforeRoll = 49500; //small margin to the practical max of 50k, in case of many multiple writers to the same blob
 
         public async Task<CloudAppendBlob> GetCloudBlobAsync(CloudStorageAccount storageAccount, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
         {
@@ -37,7 +37,8 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 //if the correct cloud append blob is prepared and below the max block count then return that
                 return currentCloudAppendBlob;
             }
-            else if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
+
+            if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
             {
                 //same blob name, but the max blocks have been reached, roll the sequence one up and get a new cloud blob reference
                 currentBlobRollSequence++;
@@ -130,7 +131,6 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                     throw;
                 }
             }
-
         }
     }
 }
