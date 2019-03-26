@@ -14,6 +14,7 @@
 // limitations under the License.
 
 using System.Threading;
+using Microsoft.WindowsAzure.Storage;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
