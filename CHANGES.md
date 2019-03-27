@@ -1,7 +1,10 @@
 # Changes
 
+### 1.2.3 3/27/2019
+* Reverted back to WindowsAzure.Storage.
+
 ### 1.2.1 3/25/2019
-* Changed nuget dependency reference from Windows.Azure.Storage to Microsoft.Azure.Storage.Blob for .Net Core projects. .Net Framework apps seem to have trouble referencing Microsoft.Azure.Storage.Blob even though it lists support for .Net Framework 4.5.
+* Changed nuget dependency reference from WindowsAzure.Storage to Microsoft.Azure.Storage.Blob for .Net Core projects. .Net Framework apps seem to have trouble referencing Microsoft.Azure.Storage.Blob even though it lists support for .Net Framework 4.5.
 * Also updated the minimum Serilog reference to 2.7.1 because it has many fewer dependencies for both .Net Core and Framework.
 
 ### 1.1.1 2/26/2019
