@@ -37,8 +37,11 @@ steps:
   displayName: Pack
   inputs:
     command: pack
-    packagesToPack: src/Serilog.Sinks.AzureBlobStorage/Serilog.Sinks.AzureBlobStorage.csproj
-    versioningScheme: byBuildNumber
+    packagesToPack: src/Serilog.Sinks.AzureBlobStorage/Serilog.Sinks.AzureBlobStorage.csproj    
+    versioningScheme: byPrereleaseNumber
+    majorVersion: '$(MajorVersion)'
+    minorVersion: '$(MinorVersion)'
+    patchVersion: '$(PatchVersion)'
 
 
 - task: PublishBuildArtifacts@1
