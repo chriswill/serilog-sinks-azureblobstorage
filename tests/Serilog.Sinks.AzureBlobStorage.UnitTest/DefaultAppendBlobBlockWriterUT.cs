@@ -11,9 +11,12 @@ using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
+    /// <summary>
+    /// Dot Net Core throws an exception of System.MissingMethodException : Method not found: 'System.Threading.Tasks.Task`1<Int64> Microsoft.Azure.Storage.Blob.CloudAppendBlob.AppendBlockAsync(System.IO.Stream)'.
+    /// </summary>
     public class DefaultAppendBlobBlockWriterUT
     {
-        private readonly DefaultAppendBlobBlockWriter _defaultAppendBlobBlockWriter;
+        private readonly DefaultAppendBlobBlockWriter defaultAppendBlobBlockWriter;
 
         private readonly CloudAppendBlob cloudBlobFake= A.Fake<CloudAppendBlob>(opt=> opt.WithArgumentsForConstructor(new[] { new Uri("https://blob.com/test/test.txt") }));
 
@@ -24,7 +27,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
         public DefaultAppendBlobBlockWriterUT()
         {
-            _defaultAppendBlobBlockWriter = new DefaultAppendBlobBlockWriter();
+            defaultAppendBlobBlockWriter = new DefaultAppendBlobBlockWriter();
 
             var framework = Assembly
                 .GetEntryAssembly()?
@@ -34,10 +37,11 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             targetsNetCore = !string.IsNullOrEmpty(framework);
         }
 
-        [Fact(DisplayName = "Should not write anything when no blocks to write.")]
+        [SkippableFact(DisplayName = "Should not write anything when no blocks to write.")]
         public async Task WriteNothingIfNoBlocksSent()
-        {            
-            await _defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, noBlocksToWrite);
+        {
+            Skip.If(targetsNetCore);
+            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, noBlocksToWrite);
 
             A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustNotHaveHappened();
         }
@@ -46,8 +50,8 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [SkippableFact(DisplayName = "Should write as many blocks as going in, one.")]
         public async Task WriteSingleBlockOnSingleInput()
         {
-            Skip.If(targetsNetCore);
-            await _defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, singleBlockToWrite);
+            //Skip.If(targetsNetCore);
+            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, singleBlockToWrite);
 
             A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustHaveHappenedOnceExactly();
         }
@@ -57,7 +61,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         public async Task WriteTwoBlocksOnOnInputOfTwo()
         {
             Skip.If(targetsNetCore);
-            await _defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, multipleBlocksToWrite);
+            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, multipleBlocksToWrite);
 
             A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustHaveHappened(multipleBlocksToWrite.Count(), Times.Exactly);
         }
