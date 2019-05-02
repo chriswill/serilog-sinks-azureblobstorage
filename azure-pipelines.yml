@@ -1,8 +1,8 @@
 trigger:
   batch: true
   branches:
-    exclude: 
-     - 'master'
+    include:
+    - '*'
 
 pool:
   vmImage: 'windows-2019'
