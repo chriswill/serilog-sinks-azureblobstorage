@@ -1,8 +1,3 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
   batch: true
   branches:
@@ -38,7 +33,19 @@ steps:
     arguments: '--configuration $(BuildConfiguration)'
 
 
+- task: DotNetCoreCLI@2
+  displayName: Pack
+  inputs:
+    command: pack
+    packagesToPack: src/Serilog.Sinks.AzureBlobStorage/Serilog.Sinks.AzureBlobStorage.csproj    
+    versioningScheme: byPrereleaseNumber
+    majorVersion: '$(MajorVersion)'
+    minorVersion: '$(MinorVersion)'
+    patchVersion: '$(PatchVersion)'
+
+
 - task: PublishBuildArtifacts@1
   inputs:
+    displayName: 'Publish Artifact'
     pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'drop'

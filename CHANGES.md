@@ -1,5 +1,9 @@
 # Changes
 
+### 1.3.0 5/3/2019
+* Changed nuget dependency reference from WindowsAzure.Storage to Microsoft.Azure.Storage.Blob.
+* Changed minimum .net framework version to 4.5.2 to support Microsoft.Azure.Storage.Blob.
+
 ### 1.2.3 3/27/2019
 * Reverted back to WindowsAzure.Storage.
 
