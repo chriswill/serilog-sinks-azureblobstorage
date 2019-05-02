@@ -31,18 +31,7 @@ steps:
     command: test
     projects: 'tests/**/*.csproj'
     arguments: '--configuration $(BuildConfiguration)'
-
-
-- task: DotNetCoreCLI@2
-  displayName: Pack
-  inputs:
-    command: pack
-    packagesToPack: src/Serilog.Sinks.AzureBlobStorage/Serilog.Sinks.AzureBlobStorage.csproj    
-    versioningScheme: byPrereleaseNumber
-    majorVersion: '$(MajorVersion)'
-    minorVersion: '$(MinorVersion)'
-    patchVersion: '$(PatchVersion)'
-
+    
 
 - task: PublishBuildArtifacts@1
   inputs:
