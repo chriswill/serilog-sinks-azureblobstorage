@@ -33,7 +33,16 @@ steps:
     arguments: '--configuration $(BuildConfiguration)'
 
 
+- task: DotNetCoreCLI@2
+  displayName: Pack
+  inputs:
+    command: pack
+    packagesToPack: src/Serilog.Sinks.AzureBlobStorage/Serilog.Sinks.AzureBlobStorage.csproj
+    versioningScheme: byBuildNumber
+
+
 - task: PublishBuildArtifacts@1
   inputs:
+    displayName: 'Publish Artifact'
     pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'drop'
