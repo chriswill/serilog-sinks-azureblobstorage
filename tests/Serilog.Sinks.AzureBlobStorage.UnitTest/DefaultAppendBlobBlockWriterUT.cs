@@ -50,7 +50,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [SkippableFact(DisplayName = "Should write as many blocks as going in, one.")]
         public async Task WriteSingleBlockOnSingleInput()
         {
-            //Skip.If(targetsNetCore);
+            Skip.If(targetsNetCore);
             await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, singleBlockToWrite);
 
             A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustHaveHappenedOnceExactly();
