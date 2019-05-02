@@ -4,23 +4,22 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
+  batch: true
   branches:
-    include:
-    - '*'
+    exclude: 
+     - 'master'
 
 pool:
-  vmImage: 'vs2017-win2016'
+  vmImage: 'windows-2019'
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
-
 - task: DotNetCoreCLI@2
   displayName: Restore
   inputs:
     command: restore
-
     projects: '**/*.csproj'
 
 
@@ -28,7 +27,6 @@ steps:
   displayName: Build
   inputs:
     projects: '**/*.csproj'
-
     arguments: '--configuration $(BuildConfiguration)'
 
 
@@ -36,10 +34,11 @@ steps:
   displayName: Test
   inputs:
     command: test
-
     projects: 'tests/**/*.csproj'
-
     arguments: '--configuration $(BuildConfiguration)'
 
 
-# - task: PublishBuildArtifacts@1
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+    artifactName: 'drop'
