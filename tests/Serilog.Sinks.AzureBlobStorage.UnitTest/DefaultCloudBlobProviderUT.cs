@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using FakeItEasy;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Auth;
+using Microsoft.Azure.Storage.Blob;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
 using Xunit;
 

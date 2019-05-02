@@ -14,8 +14,8 @@
 // limitations under the License.
 
 using System;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Auth;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;

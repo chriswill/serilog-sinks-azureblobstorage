@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using FakeItEasy;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
