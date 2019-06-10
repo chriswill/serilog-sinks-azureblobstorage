@@ -5,7 +5,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 {
     /// <summary>
     /// Produces a blob name using a given format string and a provided datetimeoffset.
-    /// The format string must only contain the date time foramt characters in the
+    /// The format string must only contain the date time format characters in the
     /// following order: 'y', 'M', 'd', 'H', 'm'. Not all format characters must be used.
     /// If forward slashes are used in the format string, the logs will appear to be
     /// in folders in the azure storage explorer.
