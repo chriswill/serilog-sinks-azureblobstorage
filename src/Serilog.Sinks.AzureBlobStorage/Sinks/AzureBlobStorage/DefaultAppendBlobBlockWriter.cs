@@ -8,9 +8,8 @@ using Microsoft.Azure.Storage.Blob;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
-    internal class DefaultAppendBlobBlockWriter : IAppendBlobBlockWriter
+    public class DefaultAppendBlobBlockWriter : IAppendBlobBlockWriter
     {
-
         public async Task WriteBlocksToAppendBlobAsync(CloudAppendBlob cloudAppendBlob, IEnumerable<string> blocks)
         {
             if (cloudAppendBlob == null)
@@ -42,6 +41,5 @@ namespace Serilog.Sinks.AzureBlobStorage
                 }
             }
         }
-
     }
 }

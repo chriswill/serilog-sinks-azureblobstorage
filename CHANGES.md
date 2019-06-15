@@ -1,8 +1,12 @@
 # Changes
 
+### 1.4.0 6/14/2019
+* Changed format of .Net Standard version to netstandard2.0. Sink was not emitting events to storage 
+under previous netstandard1.3, which seemed to be a result of our adoption of Microsoft.Azure.Storage.Blob.
+
 ### 1.3.0 5/3/2019
 * Changed nuget dependency reference from WindowsAzure.Storage to Microsoft.Azure.Storage.Blob.
-* Changed minimum .net framework version to 4.5.2 to support Microsoft.Azure.Storage.Blob.
+* Changed minimum .Net Framework version to 4.5.2 to support Microsoft.Azure.Storage.Blob.
 
 ### 1.2.3 3/27/2019
 * Reverted back to WindowsAzure.Storage.
