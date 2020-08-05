@@ -23,6 +23,7 @@ using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
 using Serilog.Formatting.Display;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Serilog
 {
@@ -75,7 +76,8 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            long? blobSizeLimitBytes = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
@@ -96,7 +98,8 @@ namespace Serilog
                 period,
                 batchPostingLimit,
                 bypassBlobCreationValidation,
-                cloudBlobProvider);
+                cloudBlobProvider,
+                blobSizeLimitBytes);
         }
 
         /// <summary>
@@ -129,7 +132,8 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            long? blobSizeLimitBytes = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException(nameof(connectionString));
@@ -150,7 +154,8 @@ namespace Serilog
                 period,
                 batchPostingLimit,
                 bypassBlobCreationValidation,
-                cloudBlobProvider);
+                cloudBlobProvider,
+                blobSizeLimitBytes);
         }
 
         /// <summary>
@@ -186,7 +191,8 @@ namespace Serilog
             TimeSpan? period = null,
             int? batchPostingLimit = null,
             IFormatProvider formatProvider = null,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            long? blobSizeLimitBytes = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrWhiteSpace(accountName)) throw new ArgumentNullException(nameof(accountName));
@@ -210,7 +216,8 @@ namespace Serilog
                 writeInBatches,
                 period,
                 batchPostingLimit,
-                cloudBlobProvider);
+                cloudBlobProvider,
+                blobSizeLimitBytes);
         }
 
         /// <summary>
@@ -241,18 +248,20 @@ namespace Serilog
             TimeSpan? period = null,
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            long? blobSizeLimitBytes = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
+            if (blobSizeLimitBytes != null && blobSizeLimitBytes < 1) throw new ArgumentException("Invalid value provided; file size limit must be at least 1 byte, or null.");
 
             ILogEventSink sink;
             try
             {
                 sink = writeInBatches ?
-                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount, formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider) :
-                    new AzureBlobStorageSink(storageAccount, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider);
+                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes) :
+                    new AzureBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes);
             }
             catch (Exception ex)
             {
@@ -292,7 +301,8 @@ namespace Serilog
             TimeSpan? period = null,
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            long? blobSizeLimitBytes = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -301,7 +311,8 @@ namespace Serilog
             try
             {
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider);
+                
+                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes);
             }
             catch (Exception ex)
             {
@@ -343,7 +354,8 @@ namespace Serilog
             bool writeInBatches = false,
             TimeSpan? period = null,
             int? batchPostingLimit = null,
-            ICloudBlobProvider cloudBlobProvider = null)
+            ICloudBlobProvider cloudBlobProvider = null,
+            long? blobSizeLimitBytes = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -364,7 +376,7 @@ namespace Serilog
                 }
 
                 // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider);
+                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes);
             }
             catch (Exception ex)
             {
