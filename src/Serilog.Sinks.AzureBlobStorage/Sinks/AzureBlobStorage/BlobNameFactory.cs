@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
@@ -43,8 +41,8 @@ namespace Serilog.Sinks.AzureBlobStorage
                 defaultName = defaultName.Insert(openBraceIndex, dtoToApply.ToString(dateFormat));
 
                 // Find next set of braces
-                openBraceIndex = defaultName.IndexOf("{");
-                closeBraceIndex = defaultName.IndexOf("}");
+                openBraceIndex = defaultName.IndexOf('{');
+                closeBraceIndex = defaultName.IndexOf('}');
             }
 
             return defaultName;
@@ -55,7 +53,6 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// </summary>
         private void ValidatedBlobName()
         {
-            int j = 0;
             int i = 0;
             while (i < baseBlobName.Length)
             {
