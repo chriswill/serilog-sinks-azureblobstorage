@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
@@ -31,13 +32,14 @@ namespace Serilog.Sinks.AzureBlobStorage
     public class AzureBatchingBlobStorageSink : PeriodicBatchingSink
     {
         private readonly ITextFormatter textFormatter;
-        private readonly CloudStorageAccount storageAccount;
+        private readonly CloudBlobClient cloudBlobClient;
         private readonly string storageContainerName;
         private readonly bool bypassBlobCreationValidation;
         private readonly ICloudBlobProvider cloudBlobProvider;
         private readonly BlobNameFactory blobNameFactory;
         private readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
         private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
+        private readonly long? blobSizeLimitBytes;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -53,7 +55,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
         public AzureBatchingBlobStorageSink(
-            CloudStorageAccount storageAccount,
+            CloudBlobClient cloudBlobClient,
             IFormatProvider formatProvider,
             ITextFormatter textFormatter,
             int batchSizeLimit,
@@ -62,15 +64,16 @@ namespace Serilog.Sinks.AzureBlobStorage
             string storageFileName = null,
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
-            IAppendBlobBlockWriter appendBlobBlockWriter = null)
-            : this(storageAccount, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter)
+            IAppendBlobBlockWriter appendBlobBlockWriter = null,
+            long? blobSizeLimitBytes = null)
+            : this(cloudBlobClient, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter, blobSizeLimitBytes: blobSizeLimitBytes)
         {
         }
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
-        /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
+        /// <param name="cloudBlobClient">The Cloud Storage Client to use to insert the log entries to.</param>
         /// <param name="textFormatter"></param>
         /// <param name="batchSizeLimit"></param>
         /// <param name="period"></param>
@@ -81,7 +84,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
         public AzureBatchingBlobStorageSink(
-            CloudStorageAccount storageAccount,
+            CloudBlobClient cloudBlobClient,
             ITextFormatter textFormatter,
             int batchSizeLimit,
             TimeSpan period,
@@ -90,7 +93,8 @@ namespace Serilog.Sinks.AzureBlobStorage
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
-            IAppendBlobBlockWriter appendBlobBlockWriter = null)
+            IAppendBlobBlockWriter appendBlobBlockWriter = null,
+            long? blobSizeLimitBytes = null)
             : base(batchSizeLimit, period)
         {
 
@@ -106,13 +110,14 @@ namespace Serilog.Sinks.AzureBlobStorage
                 storageFileName = "log.txt";
             }
 
-            this.storageAccount = storageAccount;
+            this.cloudBlobClient = cloudBlobClient;
             this.storageContainerName = storageContainerName;
             this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassBlobCreationValidation = bypassBlobCreationValidation;
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
             this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
             this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
+            this.blobSizeLimitBytes = blobSizeLimitBytes;
         }
 
         protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
@@ -121,7 +126,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             if (lastEvent == null)
                 return;
 
-            var blob = await cloudBlobProvider.GetCloudBlobAsync(storageAccount, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation).ConfigureAwait(false);
+            var blob = await cloudBlobProvider.GetCloudBlobAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
 
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, events);
 

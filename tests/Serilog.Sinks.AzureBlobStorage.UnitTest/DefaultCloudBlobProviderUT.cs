@@ -14,8 +14,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
     /// </summary>
     /// 
     public class DefaultCloudBlobProviderUT
-    {
-        private readonly CloudStorageAccount storageAccount = A.Fake<CloudStorageAccount>(opt => opt.WithArgumentsForConstructor(new object[] { new StorageCredentials(), "account", "suffix.blobs.com", true }));
+    {      
         private readonly CloudBlobClient blobClient = A.Fake<CloudBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com"), new StorageCredentials(), null }));        
 
         private readonly string blobContainerName = "logcontainer";
@@ -25,16 +24,16 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         
         public DefaultCloudBlobProviderUT()
         {
-            //A.CallTo(() => storageAccount.CreateCloudBlobClient()).Returns(blobClient);            //fails because is static
-            //A.CallTo(() => blobClient.GetContainerReference(blobContainerName)).Returns(blobContainer);
-            //A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Returns(Task.FromResult(true));
+            A.CallTo(() => blobClient.GetContainerReference(blobContainerName)).Returns(blobContainer);            
+            A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Returns(Task.FromResult(true));
         }
 
-        private CloudAppendBlob SetupCloudAppendBlobReference(string blobName, int blockCount)
+        private CloudAppendBlob SetupCloudAppendBlobReference(string blobName, int blockCount, int filesize)
         {
             CloudAppendBlob cloudAppendBlob = A.Fake<CloudAppendBlob>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com/logcontainer/" + blobName) }));
 
             SetCloudBlobBlockCount(cloudAppendBlob, blockCount);
+            SetBlobLength(cloudAppendBlob, filesize);
 
             A.CallTo(() => cloudAppendBlob.Name).Returns(blobName);
             A.CallTo(() => cloudAppendBlob.CreateOrReplaceAsync(A<AccessCondition>.Ignored, null,null)).Returns(Task.FromResult(true));
@@ -49,117 +48,160 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         {
             cloudAppendBlob.Properties.GetType().GetProperty(nameof(BlobProperties.AppendBlobCommittedBlockCount)).SetValue(cloudAppendBlob.Properties, newBlockCount, null);
         }
-        
-        [SkippableFact(DisplayName = "Should return same cloudblob if blobname is unchanged and max blocks has not been reached during.")]
+
+        private void SetBlobLength(CloudAppendBlob cloudAppendBlob, int newLength)
+        {
+            cloudAppendBlob.Properties.GetType().GetProperty(nameof(BlobProperties.Length)).SetValue(cloudAppendBlob.Properties, newLength, null);
+        }
+
         public async Task ReturnSameBlobReferenceIfNameNotChangedAndMaxBlocksNotReached()
         {
-            Skip.If(true);
             const string blobName = "SomeBlob.log";
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 0);
 
-            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
 
             //Update blockcount to a value below the max block count
             SetCloudBlobBlockCount(firstRequest, 1000);
 
-            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
 
             Assert.Same(firstRequest, secondRequest);
         }
-        
-        [SkippableFact(DisplayName = "Should return a rolled cloudblob if blobname is unchanged but max blocks has been reached during.")]
+
+        public async Task ReturnSameBlobReferenceIfNameNotChangedAndFileSizeLimitNotReached()
+        {
+            const string blobName = "SomeBlob.log";
+            const long fileSizeLimitBytes = 2000;
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 0);
+
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+
+            //Update file size to a value below the file size limit
+            SetBlobLength(firstRequest, 1000);
+
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+
+            Assert.Same(firstRequest, secondRequest);
+        }
+
         public async Task ReturnRolledBlobReferenceIfNameNotChangedAndMaxBlocksReached()
         {
-            Skip.If(true);
             const string blobName = "SomeBlob.log";
             const string rolledBlobName = "SomeBlob-001.log";
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 40000);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 40000, 0);
 
-            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
 
             //Update blockcount to a value below the max block count
             SetCloudBlobBlockCount(firstRequest, 50000);
 
             //setup the rolled cloudblob
-            CloudAppendBlob rolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 0);
+            CloudAppendBlob rolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 0, 0);
 
-            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
 
             Assert.NotSame(firstRequest, secondRequest);
             Assert.Equal(blobName, firstRequest.Name);
             Assert.Equal(rolledBlobName, secondRequest.Name);
         }
-        
-        [SkippableFact(DisplayName = "Should return a rolled cloudblob on init if first blobs already reached the max block count.")]
+
+        public async Task ReturnRolledBlobReferenceIfNameNotChangedAndFileSizeLimitReached()
+        {
+            const string blobName = "SomeBlob.log";
+            const string rolledBlobName = "SomeBlob-001.log";
+            const long fileSizeLimitBytes = 2000;
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 0);
+            
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+
+            SetBlobLength(cloudAppendBlob, 3000);
+
+            //setup the rolled cloudblob
+            CloudAppendBlob rolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 0, 0);
+
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+
+            Assert.NotSame(firstRequest, secondRequest);
+            Assert.Equal(blobName, firstRequest.Name);
+            Assert.Equal(rolledBlobName, secondRequest.Name);
+        }
+
         public async Task ReturnRolledBlobReferenceOnInitIfMaxBlocksReached()
         {
-            Skip.If(true);
             const string blobName = "SomeBlob.log";
             const string firstRolledBlobName = "SomeBlob-001.log";
             const string secondRolledBlobName = "SomeBlob-002.log";
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 50000);
-            CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(firstRolledBlobName, 50000);
-            CloudAppendBlob secondRolledcloudAppendBlob = SetupCloudAppendBlobReference(secondRolledBlobName, 10000);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 50000, 0);
+            CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(firstRolledBlobName, 50000, 0);
+            CloudAppendBlob secondRolledcloudAppendBlob = SetupCloudAppendBlobReference(secondRolledBlobName, 10000, 0);
 
-            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
+            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
 
             Assert.Equal(secondRolledBlobName, requestedBlob.Name);
         }
         
-        [SkippableFact(DisplayName = "Should return a new cloudblob non-rolled, if previous cloudblob was rolled.")]
+        public async Task ReturnRolledBlobReferenceOnInitIfFileSizeLimitReached()
+        {
+            const string blobName = "SomeBlob.log";
+            const string firstRolledBlobName = "SomeBlob-001.log";
+            const string secondRolledBlobName = "SomeBlob-002.log";
+            const long fileSizeLimitBytes = 2000;
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 3000);
+            CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(firstRolledBlobName, 0, 3000);
+            CloudAppendBlob secondRolledcloudAppendBlob = SetupCloudAppendBlobReference(secondRolledBlobName, 0, 1000);
+
+            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+
+            Assert.Equal(secondRolledBlobName, requestedBlob.Name);
+        }
+
         public async Task ReturnNonRolledBlobReferenceOnInitIfPreviousCloudblobWasRolled()
         {
-            Skip.If(true);
             const string blobName = "SomeBlob.log";
             const string rolledBlobName = "SomeBlob-001.log";
             const string newBlobName = "SomeNewBlob.log";
 
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 50000);
-            CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 40000);
-            CloudAppendBlob newCloudAppendBlob = SetupCloudAppendBlobReference(newBlobName, 0);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 50000, 0);
+            CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 40000, 0);
+            CloudAppendBlob newCloudAppendBlob = SetupCloudAppendBlobReference(newBlobName, 0, 0);
 
-            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
-            CloudAppendBlob requestednewBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, newBlobName, true);
+            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob requestednewBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, newBlobName, true);
 
             Assert.Equal(rolledBlobName, requestedBlob.Name);
             Assert.Equal(newBlobName, requestednewBlob.Name);
         }
 
-        [SkippableFact(DisplayName = "Should throw exception if container cannot be created and bypass is false.")]
         public async Task ThrowExceptionIfContainerCannotBeCreatedAndNoBypass()
         {
-            Skip.If(true);
             const string blobName = "SomeBlob.log";
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000, 0);
 
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Invokes(() => throw new StorageException());
 
-            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, false));
+            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, false));
         }
 
-        [SkippableFact(DisplayName = "Should not throw exception if container cannot be 'CreatedIfNotExists' and bypass is true.")]
         public async Task DoNoThrowExceptionIfContainerCannotBeCreatedAndBypass()
         {
-            Skip.If(true);
             const string blobName = "SomeBlob.log";
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000, 0);
 
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Invokes(() => throw new StorageException());
 
-            CloudAppendBlob blob = await defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true);
+            CloudAppendBlob blob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
         }
 
-        [SkippableFact(DisplayName = "Should throw exception if container cannot be 'CreatedIfNotExists' and bypass is true and container really does not exist.")]
         public async Task ThrowExceptionIfContainerCannotBeCreatedAndBypassAndContainerDoesNotExist()
         {
-            Skip.If(true);
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Invokes(() => throw new StorageException());
 
             const string blobName = "SomeBlob.log";
-            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000);
+            CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000, 0);
             A.CallTo(() => cloudAppendBlob.CreateOrReplaceAsync(A<AccessCondition>.Ignored, null, null)).Invokes(() => throw new StorageException());
 
-            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(storageAccount, blobContainerName, blobName, true));
+            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true));
         }
     }
 }
