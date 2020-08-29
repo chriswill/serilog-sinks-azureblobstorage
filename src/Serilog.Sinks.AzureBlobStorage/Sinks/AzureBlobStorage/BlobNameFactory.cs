@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
     /// <summary>
     /// Produces a blob name using a given format string and a provided datetimeoffset.
-    /// The format string must only contain the date time format characters in the
-    /// following order: 'y', 'M', 'd', 'H', 'm'. Not all format characters must be used.
+    /// The format string must only contain the date time format characters:
+    /// 'y', 'M', 'd', 'H', 'm'. Not all format characters must be used.
     /// If forward slashes are used in the format string, the logs will appear to be
     /// in folders in the azure storage explorer.
     /// </summary>
@@ -24,36 +26,28 @@ namespace Serilog.Sinks.AzureBlobStorage
 
         public string GetBlobName(DateTimeOffset dtoToApply)
         {
-            StringBuilder sb = new StringBuilder();
+            // Create copy of the base name
+            string defaultName = (string)baseBlobName.Clone();
 
-            // Example:
-            // baseBlobName = webhook/{yyyy}/{MM}/{dd}/{HH}.txt
-            // on November 26, 2018 at 17:52
-            // blobName = webhook/2018/11/26/17.txt
-            int i = 0;
-            while (i < baseBlobName.Length)
+            // Find first date format by finding first set of braces
+            var openBraceIndex = defaultName.IndexOf('{');
+            var closeBraceIndex = defaultName.IndexOf('}');
+            
+            while (openBraceIndex != -1 && closeBraceIndex != -1)
             {
-                var openBraceIndex = baseBlobName.IndexOf('{', i);
+                // Get date format inside the braces
+                var dateFormat = defaultName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
 
-                if (openBraceIndex < 0)
-                {
-                    sb.Append(baseBlobName.Substring(i));
-                    break;
-                }
+                // Replace braces and supplied format with formatted date time
+                defaultName = defaultName.Remove(openBraceIndex, closeBraceIndex - openBraceIndex + 1);
+                defaultName = defaultName.Insert(openBraceIndex, dtoToApply.ToString(dateFormat));
 
-                if (i != openBraceIndex)
-                {
-                    sb.Append(baseBlobName.Substring(i, openBraceIndex - i));
-                    i = openBraceIndex;
-                }
-
-                var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
-                var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
-                sb.Append(dtoToApply.ToString(dateFormat));
-                i = closeBraceIndex + 1;
+                // Find next set of braces
+                openBraceIndex = defaultName.IndexOf("{");
+                closeBraceIndex = defaultName.IndexOf("}");
             }
 
-            return sb.ToString();
+            return defaultName;
         }
 
         /// <summary>
@@ -76,23 +70,11 @@ namespace Serilog.Sinks.AzureBlobStorage
                 var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
                 var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
 
-                // Keep checking the date date format string until all characters within have been verified.
-                int lastIndex = 0;
-                do
-                {
-                    // The index of the DATE_FORMAT_ORDER array is beyond the last element,
-                    // by default the base blob name is invalid.
-                    if (j >= DATE_FORMAT_ORDER.Length)
-                        throw new ArgumentException($"{nameof(baseBlobName)} has unexpected date format characters.");
-
-                    // Get the last index of the currently expected format character. If that
-                    // character is not found, then the characters are out of order or an
-                    // unexpected character was provided.
-                    lastIndex = dateFormat.LastIndexOf(DATE_FORMAT_ORDER[j++]);
-                    if (lastIndex < 0)
-                        throw new ArgumentException($"{nameof(baseBlobName)} has unexpectently encountered the format character '{DATE_FORMAT_ORDER[j - 1]}'.");
-
-                } while (lastIndex + 1 < dateFormat.Length);
+                //// Check all characters in the date format string to make sure
+                //// they exist in currently expected format character list.
+                var charList = dateFormat.ToCharArray();
+                if (charList.Any(c => !DATE_FORMAT_ORDER.Contains(c)))
+                    throw new ArgumentException($"{nameof(baseBlobName)} contains unexpected format character.");
 
                 i = closeBraceIndex + 1;
             }
