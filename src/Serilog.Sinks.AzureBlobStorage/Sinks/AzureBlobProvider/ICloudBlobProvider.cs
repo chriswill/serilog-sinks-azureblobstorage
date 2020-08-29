@@ -14,7 +14,6 @@
 // limitations under the License.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 
 namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider

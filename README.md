@@ -51,7 +51,16 @@ On December 15, 2018 (when this was written), log files would appear to be in a 
 
 ```
 
-In the file name, the values must appear in descending order, e.g.: yy MM dd hh mm, although it is not required to include all date elements.
+As of version 2.0.0, the values are not required to appear in descending order, e.g.: yy MM dd hh mm.  In addition, the values can appear more than once.  For example, this is a valid format string which will create the following file name:
+```
+{yyyy}/{MM}/{dd}/{yyyy}-{MM}-{dd}_{HH}:{mm}.txt
+2019/06/20/2019-06-20_14:40.txt
+```
+
+#### Maximum file size
+
+You can limit the size of each file created as of version 2.0.0.  There is a constructor parameter called `blobSizeLimitBytes`. By
+default, this is null, meaning that files can grow without limitation.  By providing a value, you can specify the maximum size of a file. Logging more than this amount will cause a new file to be created.
 
 #### Batch posting example
 
