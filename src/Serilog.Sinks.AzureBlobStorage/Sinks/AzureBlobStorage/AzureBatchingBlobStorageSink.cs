@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Serilog.Events;
 using Serilog.Formatting;
@@ -44,7 +43,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
-        /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
+        /// <param name="cloudBlobClient">The Cloud Storage Client to use to insert the log entries to.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="textFormatter">The text formatter to use.</param>
         /// <param name="batchSizeLimit"></param>
@@ -54,6 +53,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         public AzureBatchingBlobStorageSink(
             CloudBlobClient cloudBlobClient,
             IFormatProvider formatProvider,
@@ -83,6 +83,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         public AzureBatchingBlobStorageSink(
             CloudBlobClient cloudBlobClient,
             ITextFormatter textFormatter,

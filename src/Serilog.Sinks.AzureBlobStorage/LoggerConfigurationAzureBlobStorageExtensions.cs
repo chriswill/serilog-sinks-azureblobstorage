@@ -62,6 +62,7 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud Blob provider to get current log blob.</param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -118,6 +119,7 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -176,6 +178,7 @@ namespace Serilog
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -235,6 +238,7 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -288,6 +292,7 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -340,6 +345,7 @@ namespace Serilog
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(

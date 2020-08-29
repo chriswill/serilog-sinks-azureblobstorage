@@ -23,7 +23,7 @@ namespace Serilog.Sinks.AzureBlobStorage
     {
         public static bool SyncContextSafeWait(this Task task, int timeout = Timeout.Infinite)
         {
-            var prevContext = SynchronizationContext.Current;
+            SynchronizationContext prevContext = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(null);
             try
             {
@@ -39,7 +39,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
         public static T SyncContextSafeWait<T>(this Task<T> task, int timeout = Timeout.Infinite)
         {
-            var prevContext = SynchronizationContext.Current;
+            SynchronizationContext prevContext = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(null);
             try
             {

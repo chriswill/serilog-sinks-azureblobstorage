@@ -42,7 +42,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
-        /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
+        /// <param name="cloudBlobClient">The Cloud Storage Client to use to insert the log entries to.</param>
         /// <param name="textFormatter"></param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -50,6 +50,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>  
         public AzureBlobStorageSink(
             CloudBlobClient cloudBlobClient,
             ITextFormatter textFormatter,
