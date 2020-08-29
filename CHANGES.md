@@ -1,5 +1,11 @@
 # Changes
 
+### 1.5.0 8/29/2020
+* Adopted pull request by @stackag to roll blob on file size limit being reached
+* Adopted pull request by @adementjeva to allow repeated date format values in file name
+* Removed support for net452. Supports netstandard2.0 only.
+* Updated all references, including references for Microsoft.Azure.Storage.Blob
+
 ### 1.4.0 6/14/2019
 * Changed format of .Net Standard version to netstandard2.0. Sink was not emitting events to storage 
 under previous netstandard1.3, which seemed to be a result of our adoption of Microsoft.Azure.Storage.Blob.

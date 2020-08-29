@@ -34,6 +34,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             targetsNetCore = !string.IsNullOrEmpty(framework);
         }
 
+        [Fact(DisplayName = "Should write nothing if not blocks were sent")]
         public async Task WriteNothingIfNoBlocksSent()
         {
             await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, noBlocksToWrite);
@@ -41,6 +42,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustNotHaveHappened();
         }
 
+        [Fact(DisplayName = "Should write single block on single input")]
         public async Task WriteSingleBlockOnSingleInput()
         {
             await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, singleBlockToWrite);
@@ -48,6 +50,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
+        [Fact(DisplayName = "Should write two block on input of two")]
         public async Task WriteTwoBlocksOnOnInputOfTwo()
         {
             await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, multipleBlocksToWrite);

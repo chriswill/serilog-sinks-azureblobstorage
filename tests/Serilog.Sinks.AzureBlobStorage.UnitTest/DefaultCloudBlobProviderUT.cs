@@ -54,6 +54,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             cloudAppendBlob.Properties.GetType().GetProperty(nameof(BlobProperties.Length)).SetValue(cloudAppendBlob.Properties, newLength, null);
         }
 
+        [Fact(DisplayName = "Should return same blob reference if name not changed and max blocks not reached")]
         public async Task ReturnSameBlobReferenceIfNameNotChangedAndMaxBlocksNotReached()
         {
             const string blobName = "SomeBlob.log";
@@ -69,6 +70,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Same(firstRequest, secondRequest);
         }
 
+        [Fact(DisplayName = "Should return same blob reference if name not changed and file size limit not reached")]
         public async Task ReturnSameBlobReferenceIfNameNotChangedAndFileSizeLimitNotReached()
         {
             const string blobName = "SomeBlob.log";
@@ -85,6 +87,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Same(firstRequest, secondRequest);
         }
 
+        [Fact(DisplayName = "Should return rolled blob reference if name not changed and max blocks reached")]
         public async Task ReturnRolledBlobReferenceIfNameNotChangedAndMaxBlocksReached()
         {
             const string blobName = "SomeBlob.log";
@@ -106,6 +109,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Equal(rolledBlobName, secondRequest.Name);
         }
 
+        [Fact(DisplayName = "Should return rolled blob reference if name not changed and file size limit reached")]
         public async Task ReturnRolledBlobReferenceIfNameNotChangedAndFileSizeLimitReached()
         {
             const string blobName = "SomeBlob.log";
@@ -127,6 +131,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Equal(rolledBlobName, secondRequest.Name);
         }
 
+        [Fact(DisplayName = "Should return rolled blob reference on init if max blocks reached")]
         public async Task ReturnRolledBlobReferenceOnInitIfMaxBlocksReached()
         {
             const string blobName = "SomeBlob.log";
@@ -140,7 +145,8 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             Assert.Equal(secondRolledBlobName, requestedBlob.Name);
         }
-        
+
+        [Fact(DisplayName = "Should return rolled blob reference on init if file size limit reached")]
         public async Task ReturnRolledBlobReferenceOnInitIfFileSizeLimitReached()
         {
             const string blobName = "SomeBlob.log";
@@ -156,7 +162,8 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Equal(secondRolledBlobName, requestedBlob.Name);
         }
 
-        public async Task ReturnNonRolledBlobReferenceOnInitIfPreviousCloudblobWasRolled()
+        [Fact(DisplayName = "Should return rolled blob reference on init if previous cloud blob was rolled")]
+        public async Task ReturnNonRolledBlobReferenceOnInitIfPreviousCloudBlobWasRolled()
         {
             const string blobName = "SomeBlob.log";
             const string rolledBlobName = "SomeBlob-001.log";
@@ -173,6 +180,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Equal(newBlobName, requestednewBlob.Name);
         }
 
+        [Fact(DisplayName = "Should throw exception if container cannot be created and not bypassed")]
         public async Task ThrowExceptionIfContainerCannotBeCreatedAndNoBypass()
         {
             const string blobName = "SomeBlob.log";
@@ -183,6 +191,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, false));
         }
 
+        [Fact(DisplayName = "Should not throw exception if container cannot be created and is bypassed")]
         public async Task DoNoThrowExceptionIfContainerCannotBeCreatedAndBypass()
         {
             const string blobName = "SomeBlob.log";
@@ -193,6 +202,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             CloudAppendBlob blob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
         }
 
+        [Fact(DisplayName = "Should throw exception if container cannot be created and is bypassed and container does not exist")]
         public async Task ThrowExceptionIfContainerCannotBeCreatedAndBypassAndContainerDoesNotExist()
         {
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Invokes(() => throw new StorageException());
