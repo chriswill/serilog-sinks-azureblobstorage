@@ -1,6 +1,6 @@
 # Changes
 
-### 1.5.0 8/29/2020
+### 2.0.0 8/29/2020
 * Adopted pull request by @stackag to roll blob on file size limit being reached
 * Adopted pull request by @adementjeva to allow repeated date format values in file name
 * Removed support for net452. Supports netstandard2.0 only.
