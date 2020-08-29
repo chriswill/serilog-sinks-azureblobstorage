@@ -24,12 +24,12 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
                 .CreateLogger();
         }
 
-        [Fact(DisplayName = "Should throw validation exception due to format characters out of order.")]
+        [Fact(DisplayName = "Should throw validation exception due to format characters not accepted")]
         public void OutOfOrderFormatCharacters()
         {
             var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
 
-            Assert.Throws<ArgumentException>(() => new BlobNameFactory(@"{yyyy}\{dd}\{MM}\name.txt"));
+            Assert.Throws<ArgumentException>(() => new BlobNameFactory(@"{xx}\name.txt"));
         }
 
         [Fact(DisplayName = "Should result in same filename.")]
@@ -96,6 +96,17 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             var result = bn.GetBlobName(dtoToApply);
 
             Assert.Equal("webhook/2018/11/05/logs.txt", result);
+        }
+
+        [Fact(DisplayName = "Should parse into year, month, day folder with static filename.")]
+        public void YearMonthDayFolderYearMonthDayFileStaticName()
+        {
+            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+            var bn = new BlobNameFactory("webhook/{yyyy}/{MM}/{dd}/logs-{yyyy}-{MM}-{dd}.txt");
+
+            var result = bn.GetBlobName(dtoToApply);
+
+            Assert.Equal("webhook/2018/11/05/logs-2018-11-05.txt", result);
         }
     }
 }
