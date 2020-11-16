@@ -16,7 +16,7 @@ The AzureBlobStorage sink appends data to the blob in text format. Here's a samp
 
 **Usage**
 ```csharp
-var connectionString = CloudStorageAccount.Parse("ConnnectionString");
+var connectionString = CloudStorageAccount.Parse("ConnectionString");
 
 var log = new LoggerConfiguration()
     .WriteTo.AzureBlobStorage(connectionString)
