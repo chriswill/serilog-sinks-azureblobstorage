@@ -14,7 +14,10 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
@@ -142,6 +145,40 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 {
                     throw;
                 }
+            }
+        }
+
+        public async Task DeleteArchivedBlobsAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobNameFormat, int retainedBlobCountLimit)
+        {
+            if(retainedBlobCountLimit < 1)
+            {
+                throw new ArgumentException("Invalid value provided; retained blob count limit must be at least 1 or null.");
+            }
+
+            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(blobContainerName);
+            BlobContinuationToken blobContinuationToken = null;
+            List<IListBlobItem> logBlobs = new List<IListBlobItem>();
+            do
+            {
+                var results = await cloudBlobContainer.ListBlobsSegmentedAsync(null, true, BlobListingDetails.None, null, blobContinuationToken, null, null);
+                // Get the value of the continuation token returned by the listing call.
+                blobContinuationToken = results.ContinuationToken;
+                logBlobs.AddRange(results.Results);                
+            } while (blobContinuationToken != null);
+
+            var validLogBlobs = logBlobs.Where(blobItem => {
+                return DateTime.TryParseExact(new CloudAppendBlob(blobItem.Uri).Name, 
+                    blobNameFormat, 
+                    CultureInfo.InvariantCulture, 
+                    DateTimeStyles.AssumeLocal, 
+                    out var _date);
+            });
+
+            var blobsToDelete = validLogBlobs.OrderByDescending(blob => new CloudAppendBlob(blob.Uri).Name).Skip(retainedBlobCountLimit);
+            foreach (IListBlobItem blob in blobsToDelete)
+            {
+                var blobToDelete = cloudBlobContainer.GetBlobReference(new CloudAppendBlob(blob.Uri).Name);
+                await blobToDelete.DeleteIfExistsAsync();
             }
         }
     }

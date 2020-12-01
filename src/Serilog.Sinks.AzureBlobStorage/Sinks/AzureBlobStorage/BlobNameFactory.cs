@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
@@ -75,6 +77,39 @@ namespace Serilog.Sinks.AzureBlobStorage
 
                 i = closeBraceIndex + 1;
             }
+        }
+
+        public string GetBlobNameFormat()
+        {
+            // Create copy of the base name
+            string defaultName = (string)baseBlobName.Clone();
+            string pattern = "{(.*?)}";
+
+            // get all words between curly braces ({<date time format>})
+            var dateFormats = Regex.Matches(defaultName, pattern)
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .ToArray();
+
+            // gets all dateformat strings and non-dateformat strings
+            string[] fileNameSplit = Regex.Split(defaultName, pattern);
+
+            List<string> fileNameParts = new List<string>();
+            // For all "non-dateformat" strings, it encloses in a single-quotes as a string literal
+            foreach (var fileNamePart in fileNameSplit)
+            {
+                if (dateFormats.Contains(fileNamePart))
+                {
+                    fileNameParts.Add(fileNamePart);
+                }
+                else
+                {
+                    fileNameParts.Add("'" + fileNamePart + "'");
+                }
+            }
+
+            string fileFormatRegex = String.Join("", fileNameParts.ToArray());
+            return fileFormatRegex;
         }
     }
 }
