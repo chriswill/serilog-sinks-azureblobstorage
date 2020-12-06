@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FakeItEasy;
 using Microsoft.Azure.Storage;
@@ -38,6 +39,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             A.CallTo(() => cloudAppendBlob.Name).Returns(blobName);
             A.CallTo(() => cloudAppendBlob.CreateOrReplaceAsync(A<AccessCondition>.Ignored, null,null)).Returns(Task.FromResult(true));
             A.CallTo(() => cloudAppendBlob.FetchAttributesAsync()).Returns(Task.FromResult(true));
+            A.CallTo(() => cloudAppendBlob.DeleteIfExistsAsync()).Returns(Task.FromResult(true));
 
             A.CallTo(() => blobContainer.GetAppendBlobReference(blobName)).Returns(cloudAppendBlob);
 
@@ -212,6 +214,48 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             A.CallTo(() => cloudAppendBlob.CreateOrReplaceAsync(A<AccessCondition>.Ignored, null, null)).Invokes(() => throw new StorageException());
 
             await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true));
+        }
+
+        [Fact(DisplayName = "Should throw an exception if retainedBlobCountLimit is less than 1.")]
+        public async Task DeleteArchivedBlobsAsync_PassLessThan1RetainedBlobCountLimit_ThrowsException()
+        {
+            const string blobName = "SomeBlob.log";
+            const int retainedBlobCountLimit = 0;
+
+            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.DeleteArchivedBlobsAsync(blobClient, blobContainerName, blobName, retainedBlobCountLimit));
+        }
+
+        [Theory(DisplayName = "Should delete blobs (including rolled blobs) successfully if retainedBlobCountLimit is greater than 0.")]
+        [InlineData("'SomeBlob-'yyyyMMdd'.log'", new string[] { "SomeBlob-20201201.log", "SomeBlob-20201202.log", "SomeBlob-20201203.log" })]
+        [InlineData("'SomeBlob-'yyyyMMdd'.log'", new string[] { "SomeBlob-20201201.log", "SomeBlob-20201202.log", "SomeBlob-20201202-001.log" })]
+        [InlineData("''yyyy'/'dd'/'MM'/SomeBlobName.txt'", new string[] { "2020/01/12/SomeBlobName.txt", "2020/02/12/SomeBlobName.txt", "2020/03/12/SomeBlobName.txt" })]
+        [InlineData("'webhook/'yyyyMMdd'/'HH'.txt'", new string[] { "webhook/20201201/05.txt", "webhook/20201201/05-001.txt", "webhook/20201201/06.txt" })]
+        public async Task DeleteArchivedBlobsAsync_PassGreaterThan0RetainedBlobCountLimit_DeletesSuccessfully(string blobNameFormat, string[] fakeBlobs)
+        {
+            const int retainedBlobCountLimit = 1;
+            List<IListBlobItem> fakeBlobItems = new List<IListBlobItem>();
+
+            string fakeBlob1 = fakeBlobs[0];
+            CloudAppendBlob fakeBlobItem1 = SetupCloudAppendBlobReference(fakeBlob1, 1, 1000);
+            fakeBlobItems.Add(fakeBlobItem1);
+
+            string fakeBlob2 = fakeBlobs[1];
+            CloudAppendBlob fakeBlobItem2 = SetupCloudAppendBlobReference(fakeBlob2, 1, 1000);
+            fakeBlobItems.Add(fakeBlobItem2);
+
+            string fakeBlob3 = fakeBlobs[2];
+            CloudAppendBlob fakeBlobItem3 = SetupCloudAppendBlobReference(fakeBlob3, 1, 1000);
+            fakeBlobItems.Add(fakeBlobItem3);
+
+            BlobResultSegment fakeBlobResultSegment = new BlobResultSegment(fakeBlobItems, null);
+
+            A.CallTo(() => blobContainer.ListBlobsSegmentedAsync(null, true, BlobListingDetails.None, null, A<BlobContinuationToken>.Ignored, null, null)).Returns(Task.FromResult(fakeBlobResultSegment));
+
+            await defaultCloudBlobProvider.DeleteArchivedBlobsAsync(blobClient, blobContainerName, blobNameFormat, retainedBlobCountLimit);
+
+            A.CallTo(() => fakeBlobItem1.DeleteIfExistsAsync()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => fakeBlobItem2.DeleteIfExistsAsync()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => fakeBlobItem3.DeleteIfExistsAsync()).MustNotHaveHappened();
         }
     }
 }
