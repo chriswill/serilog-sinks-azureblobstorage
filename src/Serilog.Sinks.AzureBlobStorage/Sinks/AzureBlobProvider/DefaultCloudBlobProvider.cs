@@ -19,6 +19,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
@@ -167,7 +168,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             } while (blobContinuationToken != null);
 
             var validLogBlobs = logBlobs.Where(blobItem => {
-                return DateTime.TryParseExact(new CloudAppendBlob(blobItem.Uri).Name, 
+                return DateTime.TryParseExact(RemoveRolledBlobNameSerialNum(new CloudAppendBlob(blobItem.Uri).Name), 
                     blobNameFormat, 
                     CultureInfo.InvariantCulture, 
                     DateTimeStyles.AssumeLocal, 
@@ -177,9 +178,16 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             var blobsToDelete = validLogBlobs.OrderByDescending(blob => new CloudAppendBlob(blob.Uri).Name).Skip(retainedBlobCountLimit);
             foreach (IListBlobItem blob in blobsToDelete)
             {
-                var blobToDelete = cloudBlobContainer.GetBlobReference(new CloudAppendBlob(blob.Uri).Name);
+                var blobToDelete = cloudBlobContainer.GetAppendBlobReference(new CloudAppendBlob(blob.Uri).Name);
                 await blobToDelete.DeleteIfExistsAsync();
             }
+        }
+
+        private string RemoveRolledBlobNameSerialNum(string blobName)
+        {
+            string blobNameWoExtension = Path.ChangeExtension(blobName, null);
+            blobNameWoExtension = Regex.Replace(blobNameWoExtension, "-[0-9]{3}$", String.Empty);
+            return blobNameWoExtension + Path.GetExtension(blobName);
         }
     }
 }
