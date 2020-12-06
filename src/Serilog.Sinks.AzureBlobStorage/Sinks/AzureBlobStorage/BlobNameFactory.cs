@@ -79,6 +79,11 @@ namespace Serilog.Sinks.AzureBlobStorage
             }
         }
 
+        /// <summary>
+        /// Gets a blob name format (parsable by DateTime) generated based on the blob name passed to the logger, 
+        /// to identify the blobs in the container created by the logger 
+        /// and only consider those while counting for deletion of older blobs.
+        /// </summary>
         public string GetBlobNameFormat()
         {
             // Create copy of the base name
