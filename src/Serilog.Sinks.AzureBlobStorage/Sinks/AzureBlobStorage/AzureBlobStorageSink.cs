@@ -38,6 +38,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
         private readonly BlobNameFactory blobNameFactory;
         private readonly long? blobSizeLimitBytes;
+        private readonly int? retainedBlobCountLimit;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -51,6 +52,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="appendBlobBlockPreparer"></param>
         /// <param name="appendBlobBlockWriter"></param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>  
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         public AzureBlobStorageSink(
             CloudBlobClient cloudBlobClient,
             ITextFormatter textFormatter,
@@ -60,7 +62,8 @@ namespace Serilog.Sinks.AzureBlobStorage
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             this.textFormatter = textFormatter;
 
@@ -82,6 +85,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
             this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
             this.blobSizeLimitBytes = blobSizeLimitBytes;
+            this.retainedBlobCountLimit = retainedBlobCountLimit;
         }
 
         /// <summary>
@@ -95,6 +99,9 @@ namespace Serilog.Sinks.AzureBlobStorage
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, new[] { logEvent });
 
             appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).SyncContextSafeWait(waitTimeoutMilliseconds);
+
+            if (retainedBlobCountLimit != null)
+                cloudBlobProvider.DeleteArchivedBlobsAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
         }
     }
 }

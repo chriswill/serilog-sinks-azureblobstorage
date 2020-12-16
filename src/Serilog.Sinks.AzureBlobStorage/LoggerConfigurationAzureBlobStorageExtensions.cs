@@ -63,6 +63,7 @@ namespace Serilog
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud Blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -78,7 +79,8 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
@@ -100,7 +102,8 @@ namespace Serilog
                 batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
-                blobSizeLimitBytes);
+                blobSizeLimitBytes,
+                retainedBlobCountLimit);
         }
 
         /// <summary>
@@ -119,7 +122,8 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
-        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -135,7 +139,8 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException(nameof(connectionString));
@@ -157,7 +162,8 @@ namespace Serilog
                 batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
-                blobSizeLimitBytes);
+                blobSizeLimitBytes,
+                retainedBlobCountLimit);
         }
 
         /// <summary>
@@ -178,7 +184,8 @@ namespace Serilog
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
-        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -195,7 +202,8 @@ namespace Serilog
             int? batchPostingLimit = null,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrWhiteSpace(accountName)) throw new ArgumentNullException(nameof(accountName));
@@ -220,7 +228,8 @@ namespace Serilog
                 period,
                 batchPostingLimit,
                 cloudBlobProvider,
-                blobSizeLimitBytes);
+                blobSizeLimitBytes,
+                retainedBlobCountLimit);
         }
 
         /// <summary>
@@ -238,7 +247,8 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
-        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -253,19 +263,21 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (blobSizeLimitBytes != null && blobSizeLimitBytes < 1) throw new ArgumentException("Invalid value provided; file size limit must be at least 1 byte, or null.");
+            if (retainedBlobCountLimit != null && retainedBlobCountLimit < 1) throw new ArgumentException("Invalid value provided; retained blob count limit must be at least 1 or null.");
 
             ILogEventSink sink;
             try
             {
                 sink = writeInBatches ?
-                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes) :
-                    new AzureBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes);
+                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit) :
+                    new AzureBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit);
             }
             catch (Exception ex)
             {
@@ -292,7 +304,8 @@ namespace Serilog
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
-        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -307,7 +320,8 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -317,7 +331,7 @@ namespace Serilog
             {
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
                 
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes);
+                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
             }
             catch (Exception ex)
             {
@@ -345,7 +359,8 @@ namespace Serilog
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
-        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param> 
+        /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
+        /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -361,7 +376,8 @@ namespace Serilog
             TimeSpan? period = null,
             int? batchPostingLimit = null,
             ICloudBlobProvider cloudBlobProvider = null,
-            long? blobSizeLimitBytes = null)
+            long? blobSizeLimitBytes = null,
+            int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -382,7 +398,7 @@ namespace Serilog
                 }
 
                 // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes);
+                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
             }
             catch (Exception ex)
             {

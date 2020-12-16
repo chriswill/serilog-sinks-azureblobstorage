@@ -101,5 +101,23 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             Assert.Equal("webhook/2018/11/05/logs-2018-11-05.txt", result);
         }
+
+        [Theory(DisplayName = "Returns the blob name format which is supported by DateTime Parser to identify blobs created by the logger.")]
+        [InlineData("{yyyy}/{dd}/{MM}/name.txt", "''yyyy'/'dd'/'MM'/name.txt'")]
+        [InlineData("samename.txt", "'samename.txt'")]
+        [InlineData("webhook/{yyyy}/{MM}/{dd}.txt", "'webhook/'yyyy'/'MM'/'dd'.txt'")]
+        [InlineData("webhook/{yyyy}/{MM}/{dd}/{HH}.txt", "'webhook/'yyyy'/'MM'/'dd'/'HH'.txt'")]
+        [InlineData("webhook/{yyyy}/{MM}/{dd}/{HH}/{mm}.txt", "'webhook/'yyyy'/'MM'/'dd'/'HH'/'mm'.txt'")]
+        [InlineData("webhook/{yyyyMMdd}/{HH}.txt", "'webhook/'yyyyMMdd'/'HH'.txt'")]
+        [InlineData("webhook/{yyyy}/{MM}/{dd}/logs.txt", "'webhook/'yyyy'/'MM'/'dd'/logs.txt'")]
+        [InlineData("webhook/{yyyy}/{MM}/{dd}/logs-{yyyy}-{MM}-{dd}.txt", "'webhook/'yyyy'/'MM'/'dd'/logs-'yyyy'-'MM'-'dd'.txt'")]
+        [InlineData("{yyyy}/{dd}/{MM}/application logs.txt", "''yyyy'/'dd'/'MM'/application logs.txt'")]
+        public void GetBlobNameFormat_ReturnsBlobNameFormatAsPerDateTimeParser(string blobName, string expectedResult)
+        {
+            var blobNameFactory = new BlobNameFactory(blobName);
+            var actualResult = blobNameFactory.GetBlobNameFormat();
+
+            Assert.Equal(expectedResult, actualResult);
+        }
     }
 }
