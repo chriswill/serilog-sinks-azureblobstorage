@@ -62,6 +62,11 @@ As of version 2.0.0, the values are not required to appear in descending order, 
 You can limit the size of each file created as of version 2.0.0.  There is a constructor parameter called `blobSizeLimitBytes`. By
 default, this is null, meaning that files can grow without limitation.  By providing a value, you can specify the maximum size of a file. Logging more than this amount will cause a new file to be created.
 
+#### Maximum number of files per container
+
+You can limit the number of files created as of version 2.1.0.  There is a constructor parameter called `retainedBlobCountLimit` to control this behavior. Once the limit is reached, a file will
+be deleted every time a new file is created in order to stay within this limit.
+
 #### Batch posting example
 
 By default, whenever there is a new event to post, the Azure Blob Storage sink will send it to Azure storage.  For cost-management or performance reasons, you can
@@ -75,6 +80,9 @@ An example configuration is:
 ```
 This configuration would post a new batch of events every 15 seconds, unless there were 10 or more events to post, in which case they would post before the time limit.
 
+### Development
+
+Do not use the Azure Storage Emulator as a development tool, because it does not support Append Blobs. Instead, use [Azurite](https://github.com/Azure/Azurite), which is Microsoft new tool for local storage emulation.
 
 ### JSON configuration
 
