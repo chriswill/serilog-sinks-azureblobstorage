@@ -82,7 +82,7 @@ This configuration would post a new batch of events every 15 seconds, unless the
 
 ### Development
 
-Do not use the Azure Storage Emulator as a development tool, because it does not support Append Blobs. Instead, use [Azurite](https://github.com/Azure/Azurite), which is Microsoft new tool for local storage emulation.
+Do not use the Azure Storage Emulator as a development tool, because it does not support Append Blobs. Instead, use [Azurite](https://github.com/Azure/Azurite), which is Microsoft's new tool for local storage emulation.
 
 ### JSON configuration
 
