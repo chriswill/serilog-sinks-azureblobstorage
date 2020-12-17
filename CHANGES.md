@@ -1,5 +1,8 @@
 # Changes
 
+### 2.1.0 12/16/2020
+* Adopted pull request by @AdarshGupta limit the number of blobs retained in a container
+
 ### 2.0.0 8/29/2020
 * Adopted pull request by @stackag to roll blob on file size limit being reached
 * Adopted pull request by @adementjeva to allow repeated date format values in file name
