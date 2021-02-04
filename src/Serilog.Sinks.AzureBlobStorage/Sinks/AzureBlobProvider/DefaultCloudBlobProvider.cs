@@ -40,7 +40,9 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             // Check if the current known blob is the targeted blob
             if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
             {
-                // Check if the current blob is within the block count and file size limits
+                 // Before performing validate first fetch attributes for current file size
+                await currentCloudAppendBlob.FetchAttributesAsync().ConfigureAwait(false);
+               // Check if the current blob is within the block count and file size limits
                 if(ValidateBlobProperties(currentCloudAppendBlob, blobSizeLimitBytes))
                 {                    
                     return currentCloudAppendBlob;
