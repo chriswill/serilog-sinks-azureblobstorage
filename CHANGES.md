@@ -1,7 +1,10 @@
 # Changes
 
+### 2.1.1 2/4/2021
+* Adopted pull request by @MarcDeRaedt to call FetchAttributesAsync to determine blob size for rollover 
+
 ### 2.1.0 12/16/2020
-* Adopted pull request by @AdarshGupta limit the number of blobs retained in a container
+* Adopted pull request by @AdarshGupta to limit the number of blobs retained in a container
 
 ### 2.0.0 8/29/2020
 * Adopted pull request by @stackag to roll blob on file size limit being reached
