@@ -101,7 +101,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).SyncContextSafeWait(waitTimeoutMilliseconds);
 
             if (retainedBlobCountLimit != null)
-                cloudBlobProvider.DeleteArchivedBlobsAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
+                cloudBlobProvider.DeleteArchivedBlobsAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int)).SyncContextSafeWait(waitTimeoutMilliseconds);
         }
     }
 }
