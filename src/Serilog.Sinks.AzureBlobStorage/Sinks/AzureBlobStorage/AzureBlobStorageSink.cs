@@ -14,8 +14,8 @@
 // limitations under the License.
 
 using System.Threading;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
@@ -30,7 +30,7 @@ namespace Serilog.Sinks.AzureBlobStorage
     {
         private readonly int waitTimeoutMilliseconds = Timeout.Infinite;
         private readonly ITextFormatter textFormatter;
-        private readonly CloudBlobClient cloudBlobClient;
+        private readonly BlobServiceClient blobServiceClient;
         private readonly string storageContainerName;
         private readonly bool bypassContainerCreationValidation;
         private readonly ICloudBlobProvider cloudBlobProvider;
@@ -43,7 +43,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
-        /// <param name="cloudBlobClient">The Cloud Storage Client to use to insert the log entries to.</param>
+        /// <param name="blobServiceClient">The Cloud Storage Client to use to insert the log entries to.</param>
         /// <param name="textFormatter"></param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -54,7 +54,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>  
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         public AzureBlobStorageSink(
-            CloudBlobClient cloudBlobClient,
+            BlobServiceClient blobServiceClient,
             ITextFormatter textFormatter,
             string storageContainerName = null,
             string storageFileName = null,
@@ -77,7 +77,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                 storageFileName = "log.txt";
             }
 
-            this.cloudBlobClient = cloudBlobClient;
+            this.blobServiceClient = blobServiceClient;
             this.storageContainerName = storageContainerName;
             blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassContainerCreationValidation = bypassContainerCreationValidation;
@@ -94,14 +94,14 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
         {
-            var blob = cloudBlobProvider.GetCloudBlobAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassContainerCreationValidation, blobSizeLimitBytes: blobSizeLimitBytes).SyncContextSafeWait(waitTimeoutMilliseconds);
+            var blob = cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp), bypassContainerCreationValidation, blobSizeLimitBytes: blobSizeLimitBytes).SyncContextSafeWait(waitTimeoutMilliseconds);
 
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, new[] { logEvent });
 
             appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).SyncContextSafeWait(waitTimeoutMilliseconds);
 
             if (retainedBlobCountLimit != null)
-                cloudBlobProvider.DeleteArchivedBlobsAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
+                cloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
     public interface IAppendBlobBlockWriter
     {
-        Task WriteBlocksToAppendBlobAsync(CloudAppendBlob cloudAppendBlob, IEnumerable<string> blocks);
+        Task WriteBlocksToAppendBlobAsync(AppendBlobClient appendBlobClient, IEnumerable<string> blocks);
     }
 }

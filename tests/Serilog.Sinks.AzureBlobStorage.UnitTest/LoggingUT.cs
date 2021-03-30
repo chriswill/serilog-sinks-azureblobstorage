@@ -1,6 +1,6 @@
 using System;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest

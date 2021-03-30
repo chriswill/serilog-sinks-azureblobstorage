@@ -21,59 +21,63 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
-
+using Azure;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
 namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
     internal class DefaultCloudBlobProvider : ICloudBlobProvider
     {
-        private CloudAppendBlob currentCloudAppendBlob;
+        private AppendBlobClient currentAppendBlobClient;
         private string currentBlobName = string.Empty;
         private int currentBlobRollSequence = 0;
 
         private static readonly int MaxBlocksOnBlobBeforeRoll = 49500; //small margin to the practical max of 50k, in case of many multiple writers to the same blob
 
-        public async Task<CloudAppendBlob> GetCloudBlobAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null)
+        public async Task<AppendBlobClient> GetCloudBlobAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null)
         {
             // Check if the current known blob is the targeted blob
-            if (currentCloudAppendBlob != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
+            if (currentAppendBlobClient != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
             {
-                 // Before performing validate first fetch attributes for current file size
-                await currentCloudAppendBlob.FetchAttributesAsync().ConfigureAwait(false);
-               // Check if the current blob is within the block count and file size limits
-                if(ValidateBlobProperties(currentCloudAppendBlob, blobSizeLimitBytes))
-                {                    
-                    return currentCloudAppendBlob;
+                // Before performing validate first fetch attributes for current file size
+                var propertiesResponse = await currentAppendBlobClient.GetPropertiesAsync().ConfigureAwait(false);
+                var properties = propertiesResponse.Value;
+
+                // Check if the current blob is within the block count and file size limits
+                if (ValidateBlobProperties(properties, blobSizeLimitBytes))
+                {
+                    return currentAppendBlobClient;
                 }
                 else
                 {
                     // The blob is correct but needs to be rolled over
                     currentBlobRollSequence++;
-                    await GetCloudAppendBlobAsync(cloudBlobClient, blobContainerName, blobName, bypassBlobCreationValidation);
+                    await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation);
                 }
             }
             else
             {
                 //first time to get a cloudblob or the blobname has changed
                 currentBlobRollSequence = 0;
-                await GetCloudAppendBlobAsync(cloudBlobClient, blobContainerName, blobName, bypassBlobCreationValidation, blobSizeLimitBytes);
+                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, blobSizeLimitBytes);
             }
 
-            return currentCloudAppendBlob;
+            return currentAppendBlobClient;
         }
 
-        private async Task GetCloudAppendBlobAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null)
+        private async Task GetAppendBlobClientAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null)
         {
-            //try to get a reference to a cloudappendblob which is below the max blocks threshold.
+            //try to get a reference to a AppendBlobClient which is below the max blocks threshold.
             for (int i = currentBlobRollSequence; i < 999; i++)
             {
                 string rolledBlobName = GetRolledBlobName(blobName, i);
-                CloudAppendBlob newCloudAppendBlob = await GetBlobReferenceAsync(cloudBlobClient, blobContainerName, rolledBlobName, bypassBlobCreationValidation);
-                if (ValidateBlobProperties(newCloudAppendBlob, blobSizeLimitBytes))
+                AppendBlobClient newAppendBlobClient = await GetBlobReferenceAsync(blobServiceClient, blobContainerName, rolledBlobName, bypassBlobCreationValidation);
+                if (ValidateBlobProperties(newAppendBlobClient, blobSizeLimitBytes))
                 {
-                    currentCloudAppendBlob = newCloudAppendBlob;
+                    currentAppendBlobClient = newAppendBlobClient;
                     currentBlobName = blobName;
                     currentBlobRollSequence = i;
                     break;
@@ -81,13 +85,13 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             }
         }
 
-        private bool ValidateBlobProperties(CloudAppendBlob blob, long? blobSizeLimitBytes = null)
+        private bool ValidateBlobProperties(BlobProperties properties, long? blobSizeLimitBytes = null)
         {
-            if (blob == null)
-                throw new ArgumentNullException(nameof(blob));
+            if (properties == null)
+                throw new ArgumentNullException(nameof(properties));
 
-            return blob.Properties.AppendBlobCommittedBlockCount < MaxBlocksOnBlobBeforeRoll 
-                && (blobSizeLimitBytes == null || blob.Properties.Length < blobSizeLimitBytes);
+            return properties.BlobCommittedBlockCount < MaxBlocksOnBlobBeforeRoll
+                && (blobSizeLimitBytes == null || properties.ContentLength < blobSizeLimitBytes);
         }
 
         private string GetRolledBlobName(string blobName, int rollingSequenceNumber)
@@ -103,18 +107,23 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             return Path.Combine(Path.GetDirectoryName(blobName), newFileName).Replace('\\', '/');
         }
 
-        public async Task<CloudAppendBlob> GetBlobReferenceAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
-        {      
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(blobContainerName);
+        public async Task<AppendBlobClient> GetBlobReferenceAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
+        {
+            var cloudBlobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+
             await CreateBlobContainerIfNotExistsAsync(cloudBlobContainer, bypassBlobCreationValidation).ConfigureAwait(false);
 
-            CloudAppendBlob newCloudAppendBlob = null;
+            AppendBlobClient newAppendBlobClient = null;
             try
             {
-                newCloudAppendBlob = cloudBlobContainer.GetAppendBlobReference(blobName);
-                newCloudAppendBlob.CreateOrReplaceAsync(AccessCondition.GenerateIfNotExistsCondition(), null, null).GetAwaiter().GetResult();
+                newAppendBlobClient =
+                    new AppendBlobClient(cloudBlobContainer.GetBlobClient(blobName).Uri);
+                //  TODO-VPL:  CreateOrReplaceAsync does not exist in the new SDK
+                //  TODO-VPL:  AccessCondition is nowhere to be seen...  here is the original line:
+                //newAppendBlobClient.CreateOrReplaceAsync(AccessCondition.GenerateIfNotExistsCondition(), null, null).GetAwaiter().GetResult();
+                await newAppendBlobClient.CreateIfNotExistsAsync();
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict && ex.RequestInformation?.ErrorCode == "BlobAlreadyExists")
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict && ex.ErrorCode == "BlobAlreadyExists")
             {
                 //StorageException (http 409 conflict, error code BlobAlreadyExists) is thrown due to the AccessCondition. The append blob already exists.
                 //No problem this is expected
@@ -125,21 +134,22 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 throw;
             }
 
-            if (newCloudAppendBlob != null)
-            {
-                //this is the first time the code gets its hands on this blob reference, get the blob properties from azure.
-                //used later on to know when to roll over the file if the 50.000 max blocks is getting close.
-                await newCloudAppendBlob.FetchAttributesAsync().ConfigureAwait(false);
-            }
+            //  TODO-VPL:  This is done differently in the new SDK ; we need to do a get properties and they return the properties
+            //if (newAppendBlobClient != null)
+            //{
+            //    //this is the first time the code gets its hands on this blob reference, get the blob properties from azure.
+            //    //used later on to know when to roll over the file if the 50.000 max blocks is getting close.
+            //    await newAppendBlobClient.FetchAttributesAsync().ConfigureAwait(false);
+            //}
 
-            return newCloudAppendBlob;
+            return newAppendBlobClient;
         }
 
-        private async Task CreateBlobContainerIfNotExistsAsync(CloudBlobContainer cloudBlobContainer, bool bypassBlobCreationValidation)
+        private async Task CreateBlobContainerIfNotExistsAsync(BlobContainerClient blobContainerClient, bool bypassBlobCreationValidation)
         {
             try
             {
-                await cloudBlobContainer.CreateIfNotExistsAsync().ConfigureAwait(false);
+                await blobContainerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -151,14 +161,14 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             }
         }
 
-        public async Task DeleteArchivedBlobsAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobNameFormat, int retainedBlobCountLimit)
+        public async Task DeleteArchivedBlobsAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobNameFormat, int retainedBlobCountLimit)
         {
-            if(retainedBlobCountLimit < 1)
+            if (retainedBlobCountLimit < 1)
             {
                 throw new ArgumentException("Invalid value provided; retained blob count limit must be at least 1 or null.");
             }
 
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(blobContainerName);
+            var cloudBlobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
             BlobContinuationToken blobContinuationToken = null;
             List<IListBlobItem> logBlobs = new List<IListBlobItem>();
             do
@@ -166,21 +176,22 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 var results = await cloudBlobContainer.ListBlobsSegmentedAsync(null, true, BlobListingDetails.None, null, blobContinuationToken, null, null);
                 // Get the value of the continuation token returned by the listing call.
                 blobContinuationToken = results.ContinuationToken;
-                logBlobs.AddRange(results.Results);                
+                logBlobs.AddRange(results.Results);
             } while (blobContinuationToken != null);
 
-            var validLogBlobs = logBlobs.Where(blobItem => {
-                return DateTime.TryParseExact(RemoveRolledBlobNameSerialNum(new CloudAppendBlob(blobItem.Uri).Name), 
-                    blobNameFormat, 
-                    CultureInfo.InvariantCulture, 
-                    DateTimeStyles.AssumeLocal, 
+            var validLogBlobs = logBlobs.Where(blobItem =>
+            {
+                return DateTime.TryParseExact(RemoveRolledBlobNameSerialNum(new AppendBlobClient(blobItem.Uri).Name),
+                    blobNameFormat,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeLocal,
                     out var _date);
             });
 
-            var blobsToDelete = validLogBlobs.OrderByDescending(blob => new CloudAppendBlob(blob.Uri).Name).Skip(retainedBlobCountLimit);
+            var blobsToDelete = validLogBlobs.OrderByDescending(blob => new AppendBlobClient(blob.Uri).Name).Skip(retainedBlobCountLimit);
             foreach (IListBlobItem blob in blobsToDelete)
             {
-                var blobToDelete = cloudBlobContainer.GetAppendBlobReference(new CloudAppendBlob(blob.Uri).Name);
+                var blobToDelete = cloudBlobContainer.GetAppendBlobReference(new AppendBlobClient(blob.Uri).Name);
                 await blobToDelete.DeleteIfExistsAsync();
             }
         }

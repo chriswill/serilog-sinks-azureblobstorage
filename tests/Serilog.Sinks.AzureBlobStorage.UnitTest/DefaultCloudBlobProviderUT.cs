@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FakeItEasy;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Auth;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
 using Xunit;
 
@@ -16,16 +15,16 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
     /// 
     public class DefaultCloudBlobProviderUT
     {      
-        private readonly CloudBlobClient blobClient = A.Fake<CloudBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com"), new StorageCredentials(), null }));        
+        private readonly BlobServiceClient blobServiceClient = A.Fake<BlobServiceClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com"), new StorageCredentials(), null }));        
 
         private readonly string blobContainerName = "logcontainer";
-        private readonly CloudBlobContainer blobContainer = A.Fake<CloudBlobContainer>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com/logcontainer") }));
+        private readonly BlobContainerClient blobContainer = A.Fake<BlobContainerClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://account.suffix.blobs.com/logcontainer") }));
 
         private readonly DefaultCloudBlobProvider defaultCloudBlobProvider = new DefaultCloudBlobProvider();
         
         public DefaultCloudBlobProviderUT()
         {
-            A.CallTo(() => blobClient.GetContainerReference(blobContainerName)).Returns(blobContainer);            
+            A.CallTo(() => blobServiceClient.GetContainerReference(blobContainerName)).Returns(blobContainer);            
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Returns(Task.FromResult(true));
         }
 
@@ -62,12 +61,12 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             const string blobName = "SomeBlob.log";
             CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 0);
 
-            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
 
             //Update blockcount to a value below the max block count
             SetCloudBlobBlockCount(firstRequest, 1000);
 
-            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
 
             Assert.Same(firstRequest, secondRequest);
         }
@@ -79,12 +78,12 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             const long fileSizeLimitBytes = 2000;
             CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 0);
 
-            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true, fileSizeLimitBytes);
 
             //Update file size to a value below the file size limit
             SetBlobLength(firstRequest, 1000);
 
-            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true, fileSizeLimitBytes);
 
             Assert.Same(firstRequest, secondRequest);
         }
@@ -96,7 +95,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             const string rolledBlobName = "SomeBlob-001.log";
             CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 40000, 0);
 
-            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
 
             //Update blockcount to a value below the max block count
             SetCloudBlobBlockCount(firstRequest, 50000);
@@ -104,7 +103,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             //setup the rolled cloudblob
             CloudAppendBlob rolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 0, 0);
 
-            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
 
             Assert.NotSame(firstRequest, secondRequest);
             Assert.Equal(blobName, firstRequest.Name);
@@ -119,14 +118,14 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             const long fileSizeLimitBytes = 2000;
             CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 0, 0);
             
-            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+            CloudAppendBlob firstRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true, fileSizeLimitBytes);
 
             SetBlobLength(cloudAppendBlob, 3000);
 
             //setup the rolled cloudblob
             CloudAppendBlob rolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 0, 0);
 
-            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+            CloudAppendBlob secondRequest = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true, fileSizeLimitBytes);
 
             Assert.NotSame(firstRequest, secondRequest);
             Assert.Equal(blobName, firstRequest.Name);
@@ -143,7 +142,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(firstRolledBlobName, 50000, 0);
             CloudAppendBlob secondRolledcloudAppendBlob = SetupCloudAppendBlobReference(secondRolledBlobName, 10000, 0);
 
-            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
 
             Assert.Equal(secondRolledBlobName, requestedBlob.Name);
         }
@@ -159,7 +158,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(firstRolledBlobName, 0, 3000);
             CloudAppendBlob secondRolledcloudAppendBlob = SetupCloudAppendBlobReference(secondRolledBlobName, 0, 1000);
 
-            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true, fileSizeLimitBytes);
+            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true, fileSizeLimitBytes);
 
             Assert.Equal(secondRolledBlobName, requestedBlob.Name);
         }
@@ -175,8 +174,8 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             CloudAppendBlob firstRolledCloudAppendBlob = SetupCloudAppendBlobReference(rolledBlobName, 40000, 0);
             CloudAppendBlob newCloudAppendBlob = SetupCloudAppendBlobReference(newBlobName, 0, 0);
 
-            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
-            CloudAppendBlob requestednewBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, newBlobName, true);
+            CloudAppendBlob requestedBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
+            CloudAppendBlob requestednewBlob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, newBlobName, true);
 
             Assert.Equal(rolledBlobName, requestedBlob.Name);
             Assert.Equal(newBlobName, requestednewBlob.Name);
@@ -190,7 +189,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Invokes(() => throw new StorageException());
 
-            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, false));
+            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, false));
         }
 
         [Fact(DisplayName = "Should not throw exception if container cannot be created and is bypassed")]
@@ -201,7 +200,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Invokes(() => throw new StorageException());
 
-            CloudAppendBlob blob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true);
+            CloudAppendBlob blob = await defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true);
         }
 
         [Fact(DisplayName = "Should throw exception if container cannot be created and is bypassed and container does not exist")]
@@ -213,7 +212,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             CloudAppendBlob cloudAppendBlob = SetupCloudAppendBlobReference(blobName, 1000, 0);
             A.CallTo(() => cloudAppendBlob.CreateOrReplaceAsync(A<AccessCondition>.Ignored, null, null)).Invokes(() => throw new StorageException());
 
-            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobClient, blobContainerName, blobName, true));
+            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.GetCloudBlobAsync(blobServiceClient, blobContainerName, blobName, true));
         }
 
         [Fact(DisplayName = "Should throw an exception if retainedBlobCountLimit is less than 1.")]
@@ -222,7 +221,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             const string blobName = "SomeBlob.log";
             const int retainedBlobCountLimit = 0;
 
-            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.DeleteArchivedBlobsAsync(blobClient, blobContainerName, blobName, retainedBlobCountLimit));
+            await Assert.ThrowsAnyAsync<Exception>(() => defaultCloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, blobContainerName, blobName, retainedBlobCountLimit));
         }
 
         [Theory(DisplayName = "Should delete blobs (including rolled blobs) successfully if retainedBlobCountLimit is greater than 0.")]
@@ -251,7 +250,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             A.CallTo(() => blobContainer.ListBlobsSegmentedAsync(null, true, BlobListingDetails.None, null, A<BlobContinuationToken>.Ignored, null, null)).Returns(Task.FromResult(fakeBlobResultSegment));
 
-            await defaultCloudBlobProvider.DeleteArchivedBlobsAsync(blobClient, blobContainerName, blobNameFormat, retainedBlobCountLimit);
+            await defaultCloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, blobContainerName, blobNameFormat, retainedBlobCountLimit);
 
             A.CallTo(() => fakeBlobItem1.DeleteIfExistsAsync()).MustHaveHappenedOnceExactly();
             A.CallTo(() => fakeBlobItem2.DeleteIfExistsAsync()).MustHaveHappenedOnceExactly();
