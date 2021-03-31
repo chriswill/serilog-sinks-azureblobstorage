@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Serilog event sink that writes to Azure Blob Storage over HTTP.</Description>
     <Authors>Chris Williams and Serilog.Sinks.AzureBlobStorage contributors</Authors>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>Serilog.Sinks.AzureBlobStorage</AssemblyName>            
     <RootNamespace>Serilog</RootNamespace>
     <PackageId>Serilog.Sinks.AzureBlobStorage</PackageId>

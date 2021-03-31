@@ -75,7 +75,10 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             {
                 string rolledBlobName = GetRolledBlobName(blobName, i);
                 AppendBlobClient newAppendBlobClient = await GetBlobReferenceAsync(blobServiceClient, blobContainerName, rolledBlobName, bypassBlobCreationValidation);
-                if (ValidateBlobProperties(newAppendBlobClient, blobSizeLimitBytes))
+                var blobPropertiesResponse = await newAppendBlobClient.GetPropertiesAsync();
+                var blobProperties = blobPropertiesResponse.Value;
+                
+                if (ValidateBlobProperties(blobProperties, blobSizeLimitBytes))
                 {
                     currentAppendBlobClient = newAppendBlobClient;
                     currentBlobName = blobName;
@@ -109,15 +112,15 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
         public async Task<AppendBlobClient> GetBlobReferenceAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
         {
-            var cloudBlobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+            var blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
 
-            await CreateBlobContainerIfNotExistsAsync(cloudBlobContainer, bypassBlobCreationValidation).ConfigureAwait(false);
+            await CreateBlobContainerIfNotExistsAsync(blobContainer, bypassBlobCreationValidation).ConfigureAwait(false);
 
             AppendBlobClient newAppendBlobClient = null;
             try
             {
-                newAppendBlobClient =
-                    new AppendBlobClient(cloudBlobContainer.GetBlobClient(blobName).Uri);
+                newAppendBlobClient = blobContainer.GetAppendBlobClient(blobName);
+
                 //  TODO-VPL:  CreateOrReplaceAsync does not exist in the new SDK
                 //  TODO-VPL:  AccessCondition is nowhere to be seen...  here is the original line:
                 //newAppendBlobClient.CreateOrReplaceAsync(AccessCondition.GenerateIfNotExistsCondition(), null, null).GetAwaiter().GetResult();
@@ -134,7 +137,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 throw;
             }
 
-            //  TODO-VPL:  This is done differently in the new SDK ; we need to do a get properties and they return the properties
+            //  TODO-VPL:  This is done differently in the new SDK ; we need to do a get properties and they return the properties, i.e. done elsewhere
             //if (newAppendBlobClient != null)
             //{
             //    //this is the first time the code gets its hands on this blob reference, get the blob properties from azure.
@@ -168,30 +171,29 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 throw new ArgumentException("Invalid value provided; retained blob count limit must be at least 1 or null.");
             }
 
-            var cloudBlobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
-            BlobContinuationToken blobContinuationToken = null;
-            List<IListBlobItem> logBlobs = new List<IListBlobItem>();
-            do
-            {
-                var results = await cloudBlobContainer.ListBlobsSegmentedAsync(null, true, BlobListingDetails.None, null, blobContinuationToken, null, null);
-                // Get the value of the continuation token returned by the listing call.
-                blobContinuationToken = results.ContinuationToken;
-                logBlobs.AddRange(results.Results);
-            } while (blobContinuationToken != null);
+            var blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+            var logBlobs = new List<BlobItem>();
 
-            var validLogBlobs = logBlobs.Where(blobItem =>
+            //  TODO-VPL:  I had to bump the .NET standard to 2.1 to get async for-each
+            await foreach (var blobItem in blobContainer.GetBlobsAsync())
             {
-                return DateTime.TryParseExact(RemoveRolledBlobNameSerialNum(new AppendBlobClient(blobItem.Uri).Name),
-                    blobNameFormat,
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeLocal,
-                    out var _date);
-            });
+                logBlobs.Add(blobItem);
+            }
 
-            var blobsToDelete = validLogBlobs.OrderByDescending(blob => new AppendBlobClient(blob.Uri).Name).Skip(retainedBlobCountLimit);
-            foreach (IListBlobItem blob in blobsToDelete)
+            var validLogBlobs = logBlobs.Where(blobItem => DateTime.TryParseExact(
+                RemoveRolledBlobNameSerialNum(blobItem.Name),
+                blobNameFormat,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeLocal,
+                out var _date));
+            var blobsToDelete = validLogBlobs
+                .OrderByDescending(blobItem => blobItem.Name)
+                .Skip(retainedBlobCountLimit);
+
+            foreach (var blobItem in blobsToDelete)
             {
-                var blobToDelete = cloudBlobContainer.GetAppendBlobReference(new AppendBlobClient(blob.Uri).Name);
+                var blobToDelete = blobContainer.GetAppendBlobClient(blobItem.Name);
+
                 await blobToDelete.DeleteIfExistsAsync();
             }
         }
