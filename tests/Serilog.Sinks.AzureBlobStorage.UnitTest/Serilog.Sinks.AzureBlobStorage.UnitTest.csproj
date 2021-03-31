@@ -6,13 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="BlobNameFactoryUT.cs" />
     <Compile Remove="DefaultCloudBlobProviderUT.cs" />
     <Compile Remove="LoggingUT.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="BlobNameFactoryUT.cs" />
     <None Include="DefaultCloudBlobProviderUT.cs" />
     <None Include="LoggingUT.cs" />
   </ItemGroup>
