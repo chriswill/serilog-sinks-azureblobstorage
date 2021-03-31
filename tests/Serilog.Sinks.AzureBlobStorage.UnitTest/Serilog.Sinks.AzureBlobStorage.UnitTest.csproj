@@ -7,14 +7,12 @@
 
   <ItemGroup>
     <Compile Remove="BlobNameFactoryUT.cs" />
-    <Compile Remove="DefaultAppendBlobBlockPreparerUT.cs" />
     <Compile Remove="DefaultCloudBlobProviderUT.cs" />
     <Compile Remove="LoggingUT.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="BlobNameFactoryUT.cs" />
-    <None Include="DefaultAppendBlobBlockPreparerUT.cs" />
     <None Include="DefaultCloudBlobProviderUT.cs" />
     <None Include="LoggingUT.cs" />
   </ItemGroup>
