@@ -1,5 +1,9 @@
 # Changes
 
+### 2.1.2 4/20/2021
+* Adopted pull request by @CCubbage to add SyncContextSafeWait to DeleteArchivedBlobsAsync
+* This is the last anticipated release before a move to the new Microsoft storage libraries 
+
 ### 2.1.1 2/4/2021
 * Adopted pull request by @MarcDeRaedt to call FetchAttributesAsync to determine blob size for rollover 
 
