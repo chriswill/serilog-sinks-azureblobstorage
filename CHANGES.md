@@ -1,6 +1,6 @@
 # Changes
 
-### 3.0.1 5/20/2021
+### 3.0.0 5/20/2021
 * Adopted [pull request](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/78) by @vplauzon that uses the Microsoft.Azure.Storage.Blob library. If you are still using WindowsAzure.Storage, please use version 2.1.2 or earlier.
 
 ### 2.1.2 4/20/2021
