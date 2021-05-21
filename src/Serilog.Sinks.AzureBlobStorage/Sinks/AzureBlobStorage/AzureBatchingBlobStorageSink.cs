@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
@@ -31,7 +31,7 @@ namespace Serilog.Sinks.AzureBlobStorage
     public class AzureBatchingBlobStorageSink : PeriodicBatchingSink
     {
         private readonly ITextFormatter textFormatter;
-        private readonly CloudBlobClient cloudBlobClient;
+        private readonly BlobServiceClient blobServiceClient;
         private readonly string storageContainerName;
         private readonly bool bypassBlobCreationValidation;
         private readonly ICloudBlobProvider cloudBlobProvider;
@@ -44,7 +44,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
-        /// <param name="cloudBlobClient">The Cloud Storage Client to use to insert the log entries to.</param>
+        /// <param name="blobServiceClient">The Cloud Storage Client to use to insert the log entries to.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="textFormatter">The text formatter to use.</param>
         /// <param name="batchSizeLimit"></param>
@@ -57,7 +57,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         public AzureBatchingBlobStorageSink(
-            CloudBlobClient cloudBlobClient,
+            BlobServiceClient blobServiceClient,
             IFormatProvider formatProvider,
             ITextFormatter textFormatter,
             int batchSizeLimit,
@@ -69,14 +69,14 @@ namespace Serilog.Sinks.AzureBlobStorage
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null)
-            : this(cloudBlobClient, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit)
+            : this(blobServiceClient, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit)
         {
         }
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
         /// </summary>
-        /// <param name="cloudBlobClient">The Cloud Storage Client to use to insert the log entries to.</param>
+        /// <param name="blobServiceClient">The Cloud Storage Client to use to insert the log entries to.</param>
         /// <param name="textFormatter"></param>
         /// <param name="batchSizeLimit"></param>
         /// <param name="period"></param>
@@ -89,7 +89,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         public AzureBatchingBlobStorageSink(
-            CloudBlobClient cloudBlobClient,
+            BlobServiceClient blobServiceClient,
             ITextFormatter textFormatter,
             int batchSizeLimit,
             TimeSpan period,
@@ -116,7 +116,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                 storageFileName = "log.txt";
             }
 
-            this.cloudBlobClient = cloudBlobClient;
+            this.blobServiceClient = blobServiceClient;
             this.storageContainerName = storageContainerName;
             this.blobNameFactory = new BlobNameFactory(storageFileName);
             this.bypassBlobCreationValidation = bypassBlobCreationValidation;
@@ -133,14 +133,14 @@ namespace Serilog.Sinks.AzureBlobStorage
             if (lastEvent == null)
                 return;
 
-            var blob = await cloudBlobProvider.GetCloudBlobAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
+            var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
 
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, events);
 
             await appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).ConfigureAwait(false);
 
             if (retainedBlobCountLimit != null)
-                await cloudBlobProvider.DeleteArchivedBlobsAsync(cloudBlobClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
+                await cloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
         }
     }
 }

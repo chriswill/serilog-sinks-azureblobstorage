@@ -14,8 +14,7 @@
 // limitations under the License.
 
 using System;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Auth;
+using Azure.Storage;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
@@ -23,7 +22,8 @@ using Serilog.Formatting;
 using Serilog.Sinks.AzureBlobStorage;
 using Serilog.Sinks.AzureBlobStorage.AzureBlobProvider;
 using Serilog.Formatting.Display;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure;
 
 namespace Serilog
 {
@@ -50,7 +50,7 @@ namespace Serilog
         /// Adds a sink that writes log events as records in an Azure Blob Storage blob (default 'log.txt') using the given storage account.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
-        /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
+        /// <param name="blobServiceClient">The Cloud Storage blob service client to use to insert the log entries to.</param>
         /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
@@ -68,7 +68,7 @@ namespace Serilog
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
-            CloudStorageAccount storageAccount,
+            BlobServiceClient blobServiceClient,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
             string storageFileName = null,
@@ -83,7 +83,7 @@ namespace Serilog
             int? retainedBlobCountLimit = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
-            if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
+            if (blobServiceClient == null) throw new ArgumentNullException(nameof(blobServiceClient));
 
             if (string.IsNullOrEmpty(outputTemplate))
             {
@@ -93,7 +93,7 @@ namespace Serilog
             return AzureBlobStorage(
                 loggerConfiguration,
                 new MessageTemplateTextFormatter(outputTemplate, formatProvider),
-                storageAccount,
+                blobServiceClient,
                 restrictedToMinimumLevel,
                 storageContainerName,
                 storageFileName,
@@ -237,7 +237,7 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="formatter">Use a Serilog ITextFormatter such as CompactJsonFormatter to store object in Azure blob</param>
-        /// <param name="storageAccount">The Cloud Storage Account to use to insert the log entries to.</param>
+        /// <param name="blobServiceClient">The Cloud Storage blob service client to use to insert the log entries to.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -254,7 +254,7 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
-            CloudStorageAccount storageAccount,
+            BlobServiceClient blobServiceClient,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
             string storageFileName = null,
@@ -268,7 +268,7 @@ namespace Serilog
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
-            if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
+            if (blobServiceClient == null) throw new ArgumentNullException(nameof(blobServiceClient));
             if (blobSizeLimitBytes != null && blobSizeLimitBytes < 1) throw new ArgumentException("Invalid value provided; file size limit must be at least 1 byte, or null.");
             if (retainedBlobCountLimit != null && retainedBlobCountLimit < 1) throw new ArgumentException("Invalid value provided; retained blob count limit must be at least 1 or null.");
 
@@ -276,8 +276,8 @@ namespace Serilog
             try
             {
                 sink = writeInBatches ?
-                    (ILogEventSink)new AzureBatchingBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit) :
-                    new AzureBlobStorageSink(storageAccount.CreateCloudBlobClient(), formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit);
+                    (ILogEventSink)new AzureBatchingBlobStorageSink(blobServiceClient, formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit) :
+                    new AzureBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit);
             }
             catch (Exception ex)
             {
@@ -329,9 +329,9 @@ namespace Serilog
 
             try
             {
-                var storageAccount = CloudStorageAccount.Parse(connectionString);
+                var blobServiceClient = new BlobServiceClient(connectionString);
                 
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
             }
             catch (Exception ex)
             {
@@ -386,19 +386,20 @@ namespace Serilog
 
             try
             {
-                var credentials = new StorageCredentials(sharedAccessSignature);
-                CloudStorageAccount storageAccount;
+                //  TODO-VPL:  very likely messed it up here, not sure what that special case was supposed to do
+                //  with a no-endpoint client
                 if (blobEndpoint == null)
                 {
-                    storageAccount = new CloudStorageAccount(credentials, accountName, endpointSuffix: null, useHttps: true);
+                    throw new NotSupportedException($"'{nameof(blobEndpoint)}' must be provided");
                 }
                 else
                 {
-                    storageAccount = new CloudStorageAccount(credentials, blobEndpoint, null, null, null);
-                }
+                    var credentials = new AzureSasCredential(sharedAccessSignature);
+                    var blobServiceClient = new BlobServiceClient(blobEndpoint, credentials);
 
-                // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
-                return AzureBlobStorage(loggerConfiguration, formatter, storageAccount, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                    // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
+                    return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                }
             }
             catch (Exception ex)
             {

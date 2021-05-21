@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 
 namespace Serilog.Sinks.AzureBlobStorage
 {
     public class DefaultAppendBlobBlockWriter : IAppendBlobBlockWriter
     {
-        public async Task WriteBlocksToAppendBlobAsync(CloudAppendBlob cloudAppendBlob, IEnumerable<string> blocks)
+        public async Task WriteBlocksToAppendBlobAsync(AppendBlobClient appendBlobClient, IEnumerable<string> blocks)
         {
-            if (cloudAppendBlob == null)
+            if (appendBlobClient == null)
             {
-                throw new ArgumentNullException(nameof(cloudAppendBlob));
+                throw new ArgumentNullException(nameof(appendBlobClient));
             }
 
             if (blocks == null)
@@ -28,11 +30,11 @@ namespace Serilog.Sinks.AzureBlobStorage
                 {
                     try
                     {
-                        await cloudAppendBlob.AppendBlockAsync(stream);
+                        await appendBlobClient.AppendBlockAsync(stream);
                     }
-                    catch (StorageException ex)
+                    catch (RequestFailedException ex)
                     {
-                        Debugging.SelfLog.WriteLine($"Exception {ex} thrown while trying to append a block. Http response code {ex.RequestInformation?.HttpStatusCode} and error code {ex.RequestInformation?.ErrorCode}. If this is the second or later block in this batch there might be duplicate log entries written due to the retry mechanism.");
+                        Debugging.SelfLog.WriteLine($"Exception {ex} thrown while trying to append a block. Http response code {ex.Status} and error code {ex.ErrorCode}. If this is the second or later block in this batch there might be duplicate log entries written due to the retry mechanism.");
                     }
                     catch (Exception ex)
                     {

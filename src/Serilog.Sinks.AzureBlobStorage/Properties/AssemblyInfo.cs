@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 
 [assembly: AssemblyTitle("Serilog.Sinks.AzureBlobStorage")]
-[assembly: AssemblyDescription("Serilog sink for Azure Blob Storage.  Allows logging events to be persisted in Azure using CloudAppendBlobs.")]
+[assembly: AssemblyDescription("Serilog sink for Azure Blob Storage.  Allows logging events to be persisted in Azure using AppendBlobClients.")]
 [assembly: AssemblyCopyright("Copyright © 2018-2019 CloudTools LLC, Serilog Contributors")]
 
 [assembly: InternalsVisibleTo("Serilog.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100fb8d13fd344a1c" +

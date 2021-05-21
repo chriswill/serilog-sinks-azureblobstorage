@@ -14,13 +14,14 @@
 // limitations under the License.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 
 namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
     public interface ICloudBlobProvider
     {
-        Task<CloudAppendBlob> GetCloudBlobAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null);
-        Task DeleteArchivedBlobsAsync(CloudBlobClient cloudBlobClient, string blobContainerName, string blobNameFormat, int retainedBlobCountLimit);
+        Task<AppendBlobClient> GetCloudBlobAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null);
+        Task DeleteArchivedBlobsAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobNameFormat, int retainedBlobCountLimit);
     }
 }

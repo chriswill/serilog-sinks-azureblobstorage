@@ -1,6 +1,6 @@
 using System;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
@@ -12,6 +12,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
         public LoggingUT()
         {
+            //  TODO-VPL:  No idea how to use dev storage in the new SDK ; disable complilation of the file
             CloudStorageAccount cloudStorageAccount = CloudStorageAccount.DevelopmentStorageAccount;
             blobClient = cloudStorageAccount.CreateCloudBlobClient();
         }

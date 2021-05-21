@@ -6,8 +6,11 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using FakeItEasy;
-using Microsoft.Azure.Storage.Blob;
+using Azure.Storage.Blobs;
 using Xunit;
+using Azure.Storage.Blobs.Specialized;
+using Azure.Storage.Blobs.Models;
+using System.Threading;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
@@ -15,7 +18,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
     {
         private readonly DefaultAppendBlobBlockWriter defaultAppendBlobBlockWriter;
 
-        private readonly CloudAppendBlob cloudBlobFake= A.Fake<CloudAppendBlob>(opt=> opt.WithArgumentsForConstructor(new[] { new Uri("https://blob.com/test/test.txt") }));
+        private readonly AppendBlobClient blobClientFake = A.Fake<AppendBlobClient>(opt => opt.WithArgumentsForConstructor(new[] { new Uri("https://blob.com/test/test.txt"), null }));
 
         private readonly IEnumerable<string> noBlocksToWrite = Enumerable.Empty<string>();
         private readonly IEnumerable<string> singleBlockToWrite = new[] { new string('*', 1024 * 1024 * 3) };
@@ -37,25 +40,40 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [Fact(DisplayName = "Should write nothing if not blocks were sent")]
         public async Task WriteNothingIfNoBlocksSent()
         {
-            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, noBlocksToWrite);
+            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blobClientFake, noBlocksToWrite);
 
-            A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustNotHaveHappened();
+            A.CallTo(() => blobClientFake.AppendBlockAsync(
+                A<Stream>.Ignored,
+                A<byte[]>.Ignored,
+                A<AppendBlobRequestConditions>.Ignored,
+                A<IProgress<long>>.Ignored,
+                A<CancellationToken>.Ignored)).MustNotHaveHappened();
         }
 
         [Fact(DisplayName = "Should write single block on single input")]
         public async Task WriteSingleBlockOnSingleInput()
         {
-            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, singleBlockToWrite);
+            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blobClientFake, singleBlockToWrite);
 
-            A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => blobClientFake.AppendBlockAsync(
+                A<Stream>.Ignored,
+                A<byte[]>.Ignored,
+                A<AppendBlobRequestConditions>.Ignored,
+                A<IProgress<long>>.Ignored,
+                A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
         [Fact(DisplayName = "Should write two block on input of two")]
         public async Task WriteTwoBlocksOnOnInputOfTwo()
         {
-            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(cloudBlobFake, multipleBlocksToWrite);
+            await defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blobClientFake, multipleBlocksToWrite);
 
-            A.CallTo(() => cloudBlobFake.AppendBlockAsync(A<Stream>.Ignored, A<string>.Ignored)).MustHaveHappened(multipleBlocksToWrite.Count(), Times.Exactly);
+            A.CallTo(() => blobClientFake.AppendBlockAsync(
+                A<Stream>.Ignored,
+                A<byte[]>.Ignored,
+                A<AppendBlobRequestConditions>.Ignored,
+                A<IProgress<long>>.Ignored,
+                A<CancellationToken>.Ignored)).MustHaveHappened(multipleBlocksToWrite.Count(), Times.Exactly);
         }
     }
 }
