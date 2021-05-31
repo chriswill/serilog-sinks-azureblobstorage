@@ -98,6 +98,17 @@ It is possible to configure the sink using [Serilog.Settings.Configuration](http
   ]
 }
 ```
+Example of authentication using Managed identity:
+```json
+"Serilog": {
+   "Using": [
+      "Serilog.Sinks.AzureBlobStorage"
+   ],
+  "WriteTo": [
+    {"Name": "AzureBlobStorage", "Args": { "formatter": "Serilog.Formatting.Json.JsonFormatter", "storageAccountUri": "", "storageContainerName": "", "storageFileName": ""}}
+  ]
+}
+```
 
 JSON configuration must be enabled using `ReadFrom.Configuration()`; see the [documentation of the JSON configuration package](https://github.com/serilog/serilog-settings-configuration) for details.
 
