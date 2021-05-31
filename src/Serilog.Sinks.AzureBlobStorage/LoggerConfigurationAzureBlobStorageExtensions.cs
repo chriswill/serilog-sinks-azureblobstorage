@@ -416,7 +416,7 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="formatter">Use a Serilog ITextFormatter such as CompactJsonFormatter to store object in data column of Azure blob</param>
-        /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authentcate using Azure Identity</param>
+        /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authenticate using Azure Identity</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -428,6 +428,7 @@ namespace Serilog
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -443,15 +444,25 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null
-            )
+            int? retainedBlobCountLimit = null,
+            string managedIdentityClientId = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
 
             try
             {
-                var blobServiceClient = new BlobServiceClient(storageAccountUri, new DefaultAzureCredential());
+                DefaultAzureCredential defaultAzureCredential;
+                if (!string.IsNullOrWhiteSpace(managedIdentityClientId))
+                {
+                    defaultAzureCredential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                        {ManagedIdentityClientId = managedIdentityClientId });
+                }
+                else
+                {
+                    defaultAzureCredential = new DefaultAzureCredential();
+                }
+                var blobServiceClient = new BlobServiceClient(storageAccountUri, defaultAzureCredential);
 
                 return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
             }
@@ -469,7 +480,7 @@ namespace Serilog
         /// storage account connection string.
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
-        /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authentcate using Azure Identity</param>
+        /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authenticate using Azure Identity</param>
         /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
@@ -482,6 +493,7 @@ namespace Serilog
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -498,7 +510,8 @@ namespace Serilog
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null,
+            string managedIdentityClientId = null)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
 
@@ -520,7 +533,8 @@ namespace Serilog
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
                 blobSizeLimitBytes,
-                retainedBlobCountLimit);
+                retainedBlobCountLimit,
+                managedIdentityClientId);
         }
     }
 }

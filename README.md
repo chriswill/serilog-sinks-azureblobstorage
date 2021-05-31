@@ -138,6 +138,15 @@ In your application's 'App.config' or 'Web.config' file, specify the file sink a
     <add key="serilog:write-to:AzureBlobStorage.formatter" value="Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact" />
 ```
 
+### Using Managed Identity
+
+Managed identity allows you to access blob storage using either a system-assigned or user-assigned managed identity, rather than a connection string. 
+
+If you are using a system-assigned managed identity, provide the storageAccountUri argument as shown in the example above. To use a user-assigned managed identity, retrieve the
+identity value from your AppService or Virtual Machine configuration and provide it using the managedIdentityClientId parameter.
+
+For more information on Managed Identity, please visit [Managed identities for Azure resources](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview).
+
 ### A note about Unit Testing
 
 Unfortunately the Azure Storage emulator does not support append blobs, so I'm omitted unit tests from this project.  I'd love to have unit tests,

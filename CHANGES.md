@@ -1,5 +1,8 @@
 # Changes
 
+### 3.0.1 5/31/2021
+* Adopted [pull request](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/79) by @KrishnaKole that added support for Azure Managed Identities.
+
 ### 3.0.0 5/20/2021
 * Adopted [pull request](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/78) by @vplauzon that uses the Microsoft.Azure.Storage.Blob library. If you are still using WindowsAzure.Storage, please use version 2.1.2 or earlier.
 
