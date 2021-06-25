@@ -80,6 +80,23 @@ An example configuration is:
 ```
 This configuration would post a new batch of events every 15 seconds, unless there were 10 or more events to post, in which case they would post before the time limit.
 
+To specify batch posting using configuration, configure use need to set these mandatory values:
+```json
+"WriteTo": [
+    {
+        "Name": "AzureBlobStorage", 
+        "Args": {
+            "connectionString": "", 
+            "storageContainerName": "", 
+            "storageFileName": "",
+            "writeInBatches": "true", // mandatory
+            "period": "0.00:00:30", // mandatory sets the period to 30 secs
+            "batchPostingLimit": "50", // optional
+        }
+    }
+  ]
+```
+
 ### Development
 
 Do not use the Azure Storage Emulator as a development tool, because it does not support Append Blobs. Instead, use [Azurite](https://github.com/Azure/Azurite), which is Microsoft's new tool for local storage emulation.
