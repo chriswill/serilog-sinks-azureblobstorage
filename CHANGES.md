@@ -1,5 +1,8 @@
 # Changes
 
+### 3.0.2 7/5/2021
+* Revised code so that it could be compiled as netstandard2.0.
+
 ### 3.0.1 5/31/2021
 * Adopted [pull request](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/79) by @KrishnaKole that added support for Azure Managed Identities.
 
