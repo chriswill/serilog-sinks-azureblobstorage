@@ -171,28 +171,38 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 throw new ArgumentException("Invalid value provided; retained blob count limit must be at least 1 or null.");
             }
 
-            var blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
-            var logBlobs = new List<BlobItem>();
+            BlobContainerClient blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+            List<BlobItem> logBlobs = new List<BlobItem>();
 
-            //  TODO-VPL:  I had to bump the .NET standard to 2.1 to get async for-each
-            await foreach (var blobItem in blobContainer.GetBlobsAsync())
+            AsyncPageable<BlobItem> blobItems = blobContainer.GetBlobsAsync();
+            
+            IAsyncEnumerator<BlobItem> enumerator = blobItems.GetAsyncEnumerator();
+            try
             {
-                logBlobs.Add(blobItem);
+                while (await enumerator.MoveNextAsync())
+                {
+                    logBlobs.Add(enumerator.Current);
+                }
+            }
+            finally
+            {
+                await enumerator.DisposeAsync();
             }
 
-            var validLogBlobs = logBlobs.Where(blobItem => DateTime.TryParseExact(
+            IEnumerable<BlobItem> validLogBlobs = logBlobs.Where(blobItem => DateTime.TryParseExact(
                 RemoveRolledBlobNameSerialNum(blobItem.Name),
                 blobNameFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
                 out var _date));
-            var blobsToDelete = validLogBlobs
+
+            IEnumerable<BlobItem> blobsToDelete = validLogBlobs
                 .OrderByDescending(blobItem => blobItem.Name)
                 .Skip(retainedBlobCountLimit);
 
             foreach (var blobItem in blobsToDelete)
             {
-                var blobToDelete = blobContainer.GetAppendBlobClient(blobItem.Name);
+                AppendBlobClient blobToDelete = blobContainer.GetAppendBlobClient(blobItem.Name);
 
                 await blobToDelete.DeleteIfExistsAsync();
             }
