@@ -17,8 +17,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
     public class DefaultAppendBlobBlockWriterUT
     {
         private readonly DefaultAppendBlobBlockWriter defaultAppendBlobBlockWriter;
-
-        private readonly AppendBlobClient blobClientFake = A.Fake<AppendBlobClient>(opt => opt.WithArgumentsForConstructor(new[] { new Uri("https://blob.com/test/test.txt"), null }));
+        private readonly AppendBlobClient blobClientFake = A.Fake<AppendBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://blob.com/test/test.txt"), new BlobClientOptions(BlobClientOptions.ServiceVersion.V2020_04_08) }));
 
         private readonly IEnumerable<string> noBlocksToWrite = Enumerable.Empty<string>();
         private readonly IEnumerable<string> singleBlockToWrite = new[] { new string('*', 1024 * 1024 * 3) };
