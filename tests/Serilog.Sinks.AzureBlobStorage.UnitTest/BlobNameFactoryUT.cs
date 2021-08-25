@@ -95,11 +95,11 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         public void YearMonthDayUTCFolderStaticName()
         {
             var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
-            var bn = new BlobNameFactory("webhook/{yyyy}/{MM}/{dd}/logs.txt");
+            var bn = new BlobNameFactory("webhook/{yyyy}/{MM}/{dd}/{HH}/logs.txt");
 
             var result = bn.GetBlobName(dtoToApply, true);
 
-            Assert.Equal("webhook/2018/11/00/logs.txt", result);
+            Assert.Equal("webhook/2018/11/05/13/logs.txt", result);
         }
 
         [Fact(DisplayName = "Should parse into year, month, day folder with static filename.")]
