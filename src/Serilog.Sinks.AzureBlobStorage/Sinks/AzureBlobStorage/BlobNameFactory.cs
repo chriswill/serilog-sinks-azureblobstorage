@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -24,7 +24,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ValidatedBlobName();
         }
 
-        public string GetBlobName(DateTimeOffset dtoToApply)
+        public string GetBlobName(DateTimeOffset dtoToApply, bool useUTCTimeZone = false)
         {
             // Create copy of the base name
             string defaultName = (string)baseBlobName.Clone();
@@ -40,7 +40,7 @@ namespace Serilog.Sinks.AzureBlobStorage
 
                 // Replace braces and supplied format with formatted date time
                 defaultName = defaultName.Remove(openBraceIndex, closeBraceIndex - openBraceIndex + 1);
-                defaultName = defaultName.Insert(openBraceIndex, dtoToApply.ToString(dateFormat));
+                defaultName = defaultName.Insert(openBraceIndex, useUTCTimeZone ? dtoToApply.UtcDateTime.ToString(dateFormat) : dtoToApply.ToString(dateFormat));
 
                 // Find next set of braces
                 openBraceIndex = defaultName.IndexOf('{');

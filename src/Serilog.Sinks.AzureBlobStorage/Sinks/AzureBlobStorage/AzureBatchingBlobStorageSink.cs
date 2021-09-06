@@ -1,4 +1,4 @@
-﻿// Copyright 2018 CloudScope, LLC
+// Copyright 2018 CloudScope, LLC
 // Portions copyright 2014 Serilog Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +40,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
         private readonly long? blobSizeLimitBytes;
         private readonly int? retainedBlobCountLimit;
+        private readonly bool useUTCTimezone;
 
         /// <summary>
         /// Construct a sink that saves logs to the specified storage account.
@@ -68,8 +69,9 @@ namespace Serilog.Sinks.AzureBlobStorage
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
-            : this(blobServiceClient, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit)
+            int? retainedBlobCountLimit = null,
+            bool useUTCTimezone = false)
+            : this(blobServiceClient, textFormatter, batchSizeLimit, period, storageContainerName, storageFileName, cloudBlobProvider: cloudBlobProvider, appendBlobBlockPreparer: appendBlobBlockPreparer, appendBlobBlockWriter: appendBlobBlockWriter, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit, useUTCTimezone: useUTCTimezone)
         {
         }
 
@@ -100,7 +102,8 @@ namespace Serilog.Sinks.AzureBlobStorage
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null,
+            bool useUTCTimezone = false)
             : base(batchSizeLimit, period)
         {
 
@@ -125,6 +128,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
             this.blobSizeLimitBytes = blobSizeLimitBytes;
             this.retainedBlobCountLimit = retainedBlobCountLimit;
+            this.useUTCTimezone = useUTCTimezone;
         }
 
         protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
@@ -133,7 +137,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             if (lastEvent == null)
                 return;
 
-            var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
+            var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp, useUTCTimezone), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
 
             var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, events);
 
