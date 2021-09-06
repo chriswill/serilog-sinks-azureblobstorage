@@ -1,5 +1,8 @@
 # Changes
 
+### 3.0.3 9/6/2021
+* Adopted [pull request #85](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/85) by @throck95 that added support for logging in UTC format.
+
 ### 3.0.2 7/5/2021
 * Revised code so that it could be compiled as netstandard2.0.
 
