@@ -43,20 +43,18 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             if (currentAppendBlobClient != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
             {
                 // Before performing validate first fetch attributes for current file size
-                var propertiesResponse = await currentAppendBlobClient.GetPropertiesAsync().ConfigureAwait(false);
-                var properties = propertiesResponse.Value;
+                Response<BlobProperties> propertiesResponse = await currentAppendBlobClient.GetPropertiesAsync().ConfigureAwait(false);
+                BlobProperties properties = propertiesResponse.Value;
 
                 // Check if the current blob is within the block count and file size limits
                 if (ValidateBlobProperties(properties, blobSizeLimitBytes))
                 {
                     return currentAppendBlobClient;
                 }
-                else
-                {
-                    // The blob is correct but needs to be rolled over
-                    currentBlobRollSequence++;
-                    await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation);
-                }
+
+                // The blob is correct but needs to be rolled over
+                currentBlobRollSequence++;
+                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation);
             }
             else
             {
