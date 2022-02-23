@@ -20,7 +20,16 @@
     <RepositoryUrl>https://github.com/chriswill/serilog-sinks-azureblobstorage</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../../LICENSE.md" Pack="true" PackagePath="/"/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../../README.md" Pack="true" PackagePath="/"/>
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
@@ -28,13 +37,6 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />        
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.3.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\LICENSE.md">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
   </ItemGroup>
  
 </Project>
