@@ -52,23 +52,23 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="blobServiceClient">The Cloud Storage blob service client to use to insert the log entries to.</param>
-        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        ///     key used for the events so is not enabled by default.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
+        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="cloudBlobProvider">Cloud Blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             BlobServiceClient blobServiceClient,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
@@ -81,7 +81,8 @@ namespace Serilog
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (blobServiceClient == null) throw new ArgumentNullException(nameof(blobServiceClient));
@@ -104,7 +105,8 @@ namespace Serilog
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
                 blobSizeLimitBytes,
-                retainedBlobCountLimit);
+                retainedBlobCountLimit, 
+                useUTCTimeZone);
         }
 
         /// <summary>
@@ -113,22 +115,22 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="connectionString">The Cloud Storage Account connection string to use to insert the log entries to.</param>
-        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
+        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             string connectionString,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
@@ -141,7 +143,8 @@ namespace Serilog
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException(nameof(connectionString));
@@ -164,7 +167,8 @@ namespace Serilog
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
                 blobSizeLimitBytes,
-                retainedBlobCountLimit);
+                retainedBlobCountLimit, 
+                useUTCTimeZone);
         }
 
         /// <summary>
@@ -238,22 +242,22 @@ namespace Serilog
         /// <param name="sharedAccessSignature">The storage account/blob SAS key.</param>
         /// <param name="accountName">The storage account name.</param>
         /// <param name="blobEndpoint">The (optional) blob endpoint. Only needed for testing.</param>
-        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        ///     key used for the events so is not enabled by default.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             string sharedAccessSignature,
             string accountName,
             Uri blobEndpoint = null,
@@ -267,7 +271,8 @@ namespace Serilog
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrWhiteSpace(accountName)) throw new ArgumentNullException(nameof(accountName));
@@ -293,7 +298,8 @@ namespace Serilog
                 batchPostingLimit,
                 cloudBlobProvider,
                 blobSizeLimitBytes,
-                retainedBlobCountLimit);
+                retainedBlobCountLimit, 
+                useUTCTimeZone);
         }
 
         /// <summary>
@@ -306,17 +312,17 @@ namespace Serilog
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        ///     key used for the events so is not enabled by default.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimezone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
             BlobServiceClient blobServiceClient,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -328,7 +334,8 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null, 
+            bool useUTCTimezone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -341,7 +348,7 @@ namespace Serilog
             {
                 sink = writeInBatches ?
                     (ILogEventSink)new AzureBatchingBlobStorageSink(blobServiceClient, formatter, batchPostingLimit ?? DefaultBatchPostingLimit, period ?? DefaultPeriod, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit) :
-                    new AzureBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit);
+                    new AzureBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes: blobSizeLimitBytes, retainedBlobCountLimit: retainedBlobCountLimit, useUTCTimezone: useUTCTimezone);
             }
             catch (Exception ex)
             {
@@ -363,17 +370,17 @@ namespace Serilog
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        ///     key used for the events so is not enabled by default.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
             string connectionString,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -385,7 +392,8 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -395,7 +403,7 @@ namespace Serilog
             {
                 var blobServiceClient = new BlobServiceClient(connectionString);
 
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUTCTimeZone);
             }
             catch (Exception ex)
             {
@@ -481,16 +489,16 @@ namespace Serilog
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        ///     key used for the events so is not enabled by default.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
             string sharedAccessSignature,
             string accountName,
@@ -503,7 +511,8 @@ namespace Serilog
             int? batchPostingLimit = null,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -524,7 +533,7 @@ namespace Serilog
                     var blobServiceClient = new BlobServiceClient(blobEndpoint, credentials);
 
                     // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
-                    return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                    return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUTCTimeZone);
                 }
             }
             catch (Exception ex)
@@ -546,18 +555,18 @@ namespace Serilog
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink; this alters the partition
-        /// key used for the events so is not enabled by default.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
+        ///     key used for the events so is not enabled by default.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
             Uri storageAccountUri,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
@@ -570,7 +579,8 @@ namespace Serilog
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
-            string managedIdentityClientId = null)
+            string managedIdentityClientId = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -589,7 +599,7 @@ namespace Serilog
                 }
                 var blobServiceClient = new BlobServiceClient(storageAccountUri, defaultAzureCredential);
 
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUTCTimeZone);
             }
             catch (Exception ex)
             {
@@ -606,23 +616,23 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authenticate using Azure Identity</param>
-        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
-        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
+        /// <param name="outputTemplate"> The template to use for writing log entries. The default is '[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}'</param>
         /// <param name="writeInBatches">Use a periodic batching sink, as opposed to a synchronous one-at-a-time sink.</param>
-        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
+        /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="bypassBlobCreationValidation">Bypass the exception in case the blob creation fails.</param>
+        /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
         /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
-        public static LoggerConfiguration AzureBlobStorage(
-            this LoggerSinkConfiguration loggerConfiguration,
+        public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             Uri storageAccountUri,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
@@ -636,7 +646,8 @@ namespace Serilog
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
-            string managedIdentityClientId = null)
+            string managedIdentityClientId = null, 
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
 
@@ -659,7 +670,8 @@ namespace Serilog
                 cloudBlobProvider,
                 blobSizeLimitBytes,
                 retainedBlobCountLimit,
-                managedIdentityClientId);
+                managedIdentityClientId, 
+                useUTCTimeZone);
         }
     }
 }
