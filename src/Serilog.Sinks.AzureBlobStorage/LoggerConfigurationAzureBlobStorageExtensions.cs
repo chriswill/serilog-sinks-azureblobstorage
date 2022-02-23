@@ -190,6 +190,7 @@ namespace Serilog
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -207,7 +208,8 @@ namespace Serilog
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null,
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (string.IsNullOrEmpty(connectionStringName)) throw new ArgumentNullException(nameof(connectionStringName));
@@ -433,6 +435,7 @@ namespace Serilog
         /// <param name="cloudBlobProvider">Cloud blob provider to get current log blob.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
+        /// <param name="useUTCTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(
@@ -449,7 +452,8 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
             long? blobSizeLimitBytes = null,
-            int? retainedBlobCountLimit = null)
+            int? retainedBlobCountLimit = null,
+            bool useUTCTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
@@ -465,7 +469,7 @@ namespace Serilog
                 }
                 var blobServiceClient = new BlobServiceClient(connectionString);
 
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUTCTimeZone);
             }
             catch (Exception ex)
             {
@@ -521,8 +525,6 @@ namespace Serilog
 
             try
             {
-                //  TODO-VPL:  very likely messed it up here, not sure what that special case was supposed to do
-                //  with a no-endpoint client
                 if (blobEndpoint == null)
                 {
                     throw new NotSupportedException($"'{nameof(blobEndpoint)}' must be provided");
