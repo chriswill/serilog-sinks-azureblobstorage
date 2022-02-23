@@ -4,6 +4,7 @@
 
 - Adopted [pull request #86](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/86) by @dsbut that added configuration parameter for logging in UTC format.
 - Adopted [pull request #87](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/87) by @chriswill that added configuration support for using a named connection string.
+- Implemented IBatchedLogEventSink in AzureBatchingBlobStorageSink to adopt current approach for Serilog Periodic Batching.
 
 ### 3.0.3 9/6/2021
 

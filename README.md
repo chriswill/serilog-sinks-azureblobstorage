@@ -45,6 +45,23 @@ var log = new LoggerConfiguration()
 
 You can avoid manually creating an IConfiguration if you use [Two-stage Initialization](https://github.com/serilog/serilog-aspnetcore#two-stage-initialization) or you have established dependency injection for IConfiguration.
 
+```csharp
+
+public static IHostBuilder CreateHostBuilder(string[] args) =>
+    Host.CreateDefaultBuilder(args)
+        .UseSerilog((context, services, configuration) => configuration
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.AzureBlobStorage(connectionStringName: "MyConnectionString", context.Configuration)
+        )
+        .ConfigureWebHostDefaults(webBuilder =>
+        {
+            webBuilder.UseStartup<Startup>();
+        });
+```
+
+**_Other options_**
+
 In addition to the storage connection, you can also specify:
 
 - Message line format (default: [{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception})
