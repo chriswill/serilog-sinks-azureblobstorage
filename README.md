@@ -101,7 +101,7 @@ You should create the sink by calling the [AzureBatchingBlobStorageSink](https:/
 An example configuration is:
 
 ```csharp
-  .WriteTo.AzureBlobStorage(blobServiceClient, Serilog.Events.LogEventLevel.Information, writeInBatches:true, period:TimeSpan.FromSeconds(15), 10)
+  .WriteTo.AzureBlobStorage(blobServiceClient, Serilog.Events.LogEventLevel.Information, writeInBatches:true, period:TimeSpan.FromSeconds(15), batchPostingLimit:10)
 ```
 
 This configuration would post a new batch of events every 15 seconds, unless there were 10 or more events to post, in which case they would post before the time limit.
