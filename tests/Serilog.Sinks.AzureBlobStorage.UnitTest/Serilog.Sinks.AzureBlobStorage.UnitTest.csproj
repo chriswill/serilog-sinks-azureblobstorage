@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>    
-    <PackageReference Include="FakeItEasy" Version="7.3.0" />
+    <PackageReference Include="FakeItEasy" Version="7.3.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.3.1" />
