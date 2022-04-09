@@ -1,6 +1,9 @@
 # Changes
 
-### 3.1.0 2/23/2022
+### 3.1.2 4/8/2022
+- No code changes, just adopted the standard logo for Serilog Sink nuget packages.
+
+### 3.1.1 2/23/2022
 
 - Adopted [pull request #86](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/86) by @dsbut that added configuration parameter for logging in UTC format.
 - Adopted [pull request #87](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/87) by @chriswill that added configuration support for using a named connection string.
