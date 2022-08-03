@@ -1,5 +1,8 @@
 # Changes
 
+### 3.1.3 8/2/2022
+- No code changes, changed Azure.Storage.Blobs to version 12.13.0 to address security vulnerability.
+- 
 ### 3.1.2 4/8/2022
 - No code changes, just adopted the standard logo for Serilog Sink nuget packages.
 
