@@ -1,28 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Serilog event sink that writes to Azure Blob Storage over HTTP.</Description>
-    <Authors>Chris Williams and Serilog.Sinks.AzureBlobStorage contributors</Authors>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Serilog.Sinks.AzureBlobStorage</AssemblyName>            
-    <RootNamespace>Serilog</RootNamespace>
-    <PackageId>Serilog.Sinks.AzureBlobStorage</PackageId>
-    <PackageTags>serilog;logging;azure</PackageTags>
-    <PackageIconUrl></PackageIconUrl>
-    <PackageProjectUrl>https://github.com/chriswill/serilog-sinks-azureblobstorage</PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Company>CloudTools, LLC</Company>
-    <Version>1.1.0</Version>
-    <RepositoryUrl>https://github.com/chriswill/serilog-sinks-azureblobstorage</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>serilog-sink-nuget.png</PackageIcon>
-  </PropertyGroup>
+	<PropertyGroup>
+		<Description>Serilog event sink that writes to Azure Blob Storage over HTTP.</Description>
+		<Authors>Chris Williams and Serilog.Sinks.AzureBlobStorage contributors</Authors>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<AssemblyName>Serilog.Sinks.AzureBlobStorage</AssemblyName>
+		<RootNamespace>Serilog</RootNamespace>
+		<PackageId>Serilog.Sinks.AzureBlobStorage</PackageId>
+		<PackageTags>serilog;logging;azure</PackageTags>
+		<PackageIconUrl></PackageIconUrl>
+		<PackageProjectUrl>https://github.com/chriswill/serilog-sinks-azureblobstorage</PackageProjectUrl>
+		<PackageLicenseUrl></PackageLicenseUrl>
+		<GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+		<GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+		<GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Company>CloudTools, LLC</Company>
+		<Version>1.1.0</Version>
+		<RepositoryUrl>https://github.com/chriswill/serilog-sinks-azureblobstorage</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>serilog-sink-nuget.png</PackageIcon>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="../../LICENSE.md" Pack="true" PackagePath="/" />
@@ -31,17 +31,17 @@
 	<ItemGroup>
 		<None Include="../../README.md" Pack="true" PackagePath="/" />
 		<None Include="..\..\serilog-sink-nuget.png">
-		  <Pack>True</Pack>
-		  <PackagePath>\</PackagePath>
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.5.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />        
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.3.1" />
-  </ItemGroup>
- 
+	<ItemGroup>
+		<PackageReference Include="Azure.Identity" Version="1.5.0" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+		<PackageReference Include="Serilog" Version="2.10.0" />
+		<PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="3.1.0" />
+	</ItemGroup>
+
 </Project>

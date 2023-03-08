@@ -1,6 +1,11 @@
+using Serilog.Context;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Serilog.Sinks.AzureBlobStorage
@@ -24,7 +29,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ValidatedBlobName();
         }
 
-        public string GetBlobName(DateTimeOffset dtoToApply, bool useUTCTimeZone = false)
+        public string GetBlobName(DateTimeOffset dtoToApply, IReadOnlyDictionary<string, LogEventPropertyValue> properties, bool useUTCTimeZone = false)
         {
             // Create copy of the base name
             string defaultName = (string)baseBlobName.Clone();
@@ -32,7 +37,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             // Find first date format by finding first set of braces
             var openBraceIndex = defaultName.IndexOf('{');
             var closeBraceIndex = defaultName.IndexOf('}');
-            
+
             while (openBraceIndex != -1 && closeBraceIndex != -1)
             {
                 // Get date format inside the braces
@@ -40,7 +45,23 @@ namespace Serilog.Sinks.AzureBlobStorage
 
                 // Replace braces and supplied format with formatted date time
                 defaultName = defaultName.Remove(openBraceIndex, closeBraceIndex - openBraceIndex + 1);
-                defaultName = defaultName.Insert(openBraceIndex, useUTCTimeZone ? dtoToApply.UtcDateTime.ToString(dateFormat) : dtoToApply.ToString(dateFormat));
+
+                var charList = dateFormat.ToCharArray();
+                if (charList.All(c => DATE_FORMAT_ORDER.Contains(c)))
+                {
+                    defaultName = defaultName.Insert(openBraceIndex, useUTCTimeZone ? dtoToApply.UtcDateTime.ToString(dateFormat) : dtoToApply.ToString(dateFormat));
+                }
+                else
+                {
+                    if (properties.ContainsKey(dateFormat))
+                    {
+                        if (properties[dateFormat] is ScalarValue)
+                        {
+                            string propertyValue = ((ScalarValue)properties[dateFormat]).Value.ToString();
+                            defaultName = defaultName.Insert(openBraceIndex, propertyValue);
+                        }
+                    }
+                }
 
                 // Find next set of braces
                 openBraceIndex = defaultName.IndexOf('{');
@@ -55,27 +76,34 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// </summary>
         private void ValidatedBlobName()
         {
-            int i = 0;
-            while (i < baseBlobName.Length)
+            try
             {
-                var openBraceIndex = baseBlobName.IndexOf('{', i);
-
-                if (openBraceIndex < 0)
+                int i = 0;
+                while (i < baseBlobName.Length)
                 {
-                    break;
+                    var openBraceIndex = baseBlobName.IndexOf('{', i);
+
+                    if (openBraceIndex < 0)
+                    {
+                        break;
+                    }
+
+                    // Get the date format characters within the current pair of curly braces.
+                    var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
+                    var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+
+                    //// Check all characters in the date format string to make sure
+                    //// they exist in currently expected format character list.
+                    var charList = dateFormat.ToCharArray();
+                    //if (charList.Any(c => !DATE_FORMAT_ORDER.Contains(c)))
+                    //    throw new ArgumentException($"{nameof(baseBlobName)} contains unexpected format character.");
+
+                    i = closeBraceIndex + 1;
                 }
+            }
+            catch (Exception ex)
+            {
 
-                // Get the date format characters within the current pair of curly braces.
-                var closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
-                var dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
-
-                //// Check all characters in the date format string to make sure
-                //// they exist in currently expected format character list.
-                var charList = dateFormat.ToCharArray();
-                if (charList.Any(c => !DATE_FORMAT_ORDER.Contains(c)))
-                    throw new ArgumentException($"{nameof(baseBlobName)} contains unexpected format character.");
-
-                i = closeBraceIndex + 1;
             }
         }
 

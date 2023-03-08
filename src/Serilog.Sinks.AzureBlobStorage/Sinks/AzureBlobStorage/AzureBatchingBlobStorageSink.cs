@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
@@ -124,7 +125,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.retainedBlobCountLimit = retainedBlobCountLimit;
             this.useUtcTimeZone = useUtcTimeZone;
         }
-        
+
         public Task OnEmptyBatchAsync()
         {
             return Task.CompletedTask;
@@ -136,14 +137,37 @@ namespace Serilog.Sinks.AzureBlobStorage
             if (lastEvent == null)
                 return;
 
-            var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(lastEvent.Timestamp, useUtcTimeZone), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
+            Dictionary<AppendBlobClient, List<LogEvent>> logEventsDictionary = new Dictionary<AppendBlobClient, List<LogEvent>>();
 
-            var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, logEvents);
+            try
+            {
+                foreach (var logEvent in logEvents)
+                {
+                    var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName,
+                        blobNameFactory.GetBlobName(lastEvent.Timestamp, logEvent.Properties, useUtcTimeZone), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
 
-            await appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blob, blocks).ConfigureAwait(false);
+                    if (!logEventsDictionary.ContainsKey(blob))
+                    {
+                        logEventsDictionary.Add(blob, new List<LogEvent> { logEvent });
+                    }
+                    else
+                    {
+                        logEventsDictionary[blob].Add(logEvent);
+                    }
+                }
 
-            if (retainedBlobCountLimit != null)
-                await cloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
+                foreach (var item in logEventsDictionary)
+                {
+                    var blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, item.Value);
+
+                    await appendBlobBlockWriter.WriteBlocksToAppendBlobAsync(item.Key, blocks).ConfigureAwait(false);
+                }
+
+                if (retainedBlobCountLimit != null)
+                    await cloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
+            }
+            catch (Exception ex)
+            { }
         }
 
         public void Emit(LogEvent logEvent)

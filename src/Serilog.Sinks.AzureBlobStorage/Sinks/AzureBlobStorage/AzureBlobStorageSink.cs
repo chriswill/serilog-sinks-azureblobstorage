@@ -100,7 +100,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
         {
-            AppendBlobClient blob = cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp, useUTCTimezone), bypassContainerCreationValidation, blobSizeLimitBytes: blobSizeLimitBytes).SyncContextSafeWait(waitTimeoutMilliseconds);
+            AppendBlobClient blob = cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp, logEvent.Properties, useUTCTimezone), bypassContainerCreationValidation, blobSizeLimitBytes: blobSizeLimitBytes).SyncContextSafeWait(waitTimeoutMilliseconds);
 
             IEnumerable<string> blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, new[] { logEvent });
 
