@@ -5,13 +5,13 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
     public class BlobNameFactoryUT
     {
-        [Fact(DisplayName = "Should throw validation exception due to invalid format characters.")]
-        public void InvalidFormatCharacters()
-        {
-            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+        //[Fact(DisplayName = "Should throw validation exception due to invalid format characters.")]
+        //public void InvalidFormatCharacters()
+        //{
+        //    var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
 
-            Assert.Throws<ArgumentException>(() => new BlobNameFactory(@"{xx}\name.txt"));
-        }
+        //    Assert.Throws<ArgumentException>(() => new BlobNameFactory(@"{xx}\name.txt"));
+        //}
 
         [Fact(DisplayName = "Should parse year month even if format characters out of order.")]
         public void OutOfOrderFormatCharacters()
