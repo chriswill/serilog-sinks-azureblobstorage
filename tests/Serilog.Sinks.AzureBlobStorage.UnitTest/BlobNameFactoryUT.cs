@@ -8,7 +8,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
         [Fact(DisplayName = "Should throw validation exception due to invalid format characters.")]
         public void InvalidFormatCharacters()
         {
-            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5,0,0));
+            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
 
             Assert.Throws<ArgumentException>(() => new BlobNameFactory(@"{xx}\name.txt"));
         }
@@ -97,7 +97,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
             var bn = new BlobNameFactory("webhook/{yyyy}/{MM}/{dd}/{HH}/logs.txt");
 
-            var result = bn.GetBlobName(dtoToApply, true);
+            var result = bn.GetBlobName(dtoToApply, useUTCTimeZone: true);
 
             Assert.Equal("webhook/2018/11/05/13/logs.txt", result);
         }

@@ -29,7 +29,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ValidatedBlobName();
         }
 
-        public string GetBlobName(DateTimeOffset dtoToApply, IReadOnlyDictionary<string, LogEventPropertyValue> properties, bool useUTCTimeZone = false)
+        public string GetBlobName(DateTimeOffset dtoToApply, IReadOnlyDictionary<string, LogEventPropertyValue> properties = null, bool useUTCTimeZone = false)
         {
             // Create copy of the base name
             string defaultName = (string)baseBlobName.Clone();
@@ -53,7 +53,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                 }
                 else
                 {
-                    if (properties.ContainsKey(dateFormat))
+                    if (properties != null && properties.ContainsKey(dateFormat))
                     {
                         if (properties[dateFormat] is ScalarValue)
                         {
