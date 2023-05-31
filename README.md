@@ -141,6 +141,25 @@ To specify batch posting using configuration, configure use need to set these ma
   ]
 ```
 
+### Multi-tenant support
+
+From version 3.2.0, you can log using multiple log files, one per each tenant.
+
+To configure, create a storage filename that includes a tenant id property.
+
+```json
+loggerConfiguration.WriteTo.
+     AzureBlobStorage("blobconnectionstring", 
+     LogEventLevel.Information, "Containername", storageFileName: "/{TenantId}/{yyyy}/{MM}/log{yyyy}{MM}{dd}.txt", 
+     writeInBatches: true, period: TimeSpan.FromSeconds(15), batchPostingLimit: 100);
+```
+
+Then, before writing a log entry, use the Serilog PushProperty method to add the TenantId property.
+
+```
+LogContext.PushProperty("TenantId", tenantId);
+```
+
 ### Development
 
 Do not use the Azure Storage Emulator as a development tool, because it does not support Append Blobs. Instead, use [Azurite](https://github.com/Azure/Azurite), which is Microsoft's new tool for local storage emulation.
