@@ -167,7 +167,9 @@ namespace Serilog.Sinks.AzureBlobStorage
                     await cloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
             }
             catch (Exception ex)
-            { }
+            { 
+                Debugging.SelfLog.WriteLine("Failed to write events to blob storage: {0} {1}", ex.Message, ex.StackTrace);
+            }
         }
 
         public void Emit(LogEvent logEvent)
