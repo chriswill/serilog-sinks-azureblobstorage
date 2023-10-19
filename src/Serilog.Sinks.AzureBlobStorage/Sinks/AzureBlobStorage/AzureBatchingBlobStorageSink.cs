@@ -40,6 +40,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         private readonly BlobNameFactory blobNameFactory;
         private readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
         private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
+        private readonly string contentType;
         private readonly long? blobSizeLimitBytes;
         private readonly int? retainedBlobCountLimit;
         private readonly bool useUtcTimeZone;
@@ -67,6 +68,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             bool useUtcTimeZone = false)
@@ -97,6 +99,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             bool useUtcTimeZone = false)
@@ -121,6 +124,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
             this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
             this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
+            this.contentType = contentType;
             this.blobSizeLimitBytes = blobSizeLimitBytes;
             this.retainedBlobCountLimit = retainedBlobCountLimit;
             this.useUtcTimeZone = useUtcTimeZone;
@@ -144,7 +148,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                 foreach (var logEvent in logEvents)
                 {
                     var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName,
-                        blobNameFactory.GetBlobName(lastEvent.Timestamp, logEvent.Properties, useUtcTimeZone), bypassBlobCreationValidation, blobSizeLimitBytes).ConfigureAwait(false);
+                        blobNameFactory.GetBlobName(lastEvent.Timestamp, logEvent.Properties, useUtcTimeZone), bypassBlobCreationValidation, contentType, blobSizeLimitBytes).ConfigureAwait(false);
 
                     if (!logEventsDictionary.ContainsKey(blob))
                     {
@@ -167,7 +171,9 @@ namespace Serilog.Sinks.AzureBlobStorage
                     await cloudBlobProvider.DeleteArchivedBlobsAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobNameFormat(), retainedBlobCountLimit ?? default(int));
             }
             catch (Exception ex)
-            { }
+            { 
+                Debugging.SelfLog.WriteLine("Failed to write events to blob storage: {0} {1}", ex.Message, ex.StackTrace);
+            }
         }
 
         public void Emit(LogEvent logEvent)

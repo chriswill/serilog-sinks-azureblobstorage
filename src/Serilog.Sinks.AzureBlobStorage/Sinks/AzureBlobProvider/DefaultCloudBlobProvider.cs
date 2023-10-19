@@ -37,7 +37,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
         private static readonly int MaxBlocksOnBlobBeforeRoll = 49500; //small margin to the practical max of 50k, in case of many multiple writers to the same blob
 
-        public async Task<AppendBlobClient> GetCloudBlobAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null)
+        public async Task<AppendBlobClient> GetCloudBlobAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType, long? blobSizeLimitBytes = null)
         {
             // Check if the current known blob is the targeted blob
             if (currentAppendBlobClient != null && currentBlobName.Equals(blobName, StringComparison.OrdinalIgnoreCase))
@@ -54,25 +54,25 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
                 // The blob is correct but needs to be rolled over
                 currentBlobRollSequence++;
-                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation);
+                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType);
             }
             else
             {
                 //first time to get a cloudblob or the blobname has changed
                 currentBlobRollSequence = 0;
-                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, blobSizeLimitBytes);
+                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType, blobSizeLimitBytes);
             }
 
             return currentAppendBlobClient;
         }
 
-        private async Task GetAppendBlobClientAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null)
+        private async Task GetAppendBlobClientAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType, long? blobSizeLimitBytes = null)
         {
             //try to get a reference to a AppendBlobClient which is below the max blocks threshold.
             for (int i = currentBlobRollSequence; i < 999; i++)
             {
                 string rolledBlobName = GetRolledBlobName(blobName, i);
-                AppendBlobClient newAppendBlobClient = await GetBlobReferenceAsync(blobServiceClient, blobContainerName, rolledBlobName, bypassBlobCreationValidation);
+                AppendBlobClient newAppendBlobClient = await GetBlobReferenceAsync(blobServiceClient, blobContainerName, rolledBlobName, bypassBlobCreationValidation, contentType);
                 var blobPropertiesResponse = await newAppendBlobClient.GetPropertiesAsync();
                 var blobProperties = blobPropertiesResponse.Value;
                 
@@ -108,7 +108,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             return Path.Combine(Path.GetDirectoryName(blobName), newFileName).Replace('\\', '/');
         }
 
-        public async Task<AppendBlobClient> GetBlobReferenceAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation)
+        public async Task<AppendBlobClient> GetBlobReferenceAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType)
         {
             var blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
 
@@ -122,7 +122,14 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 //  TODO-VPL:  CreateOrReplaceAsync does not exist in the new SDK
                 //  TODO-VPL:  AccessCondition is nowhere to be seen...  here is the original line:
                 //newAppendBlobClient.CreateOrReplaceAsync(AccessCondition.GenerateIfNotExistsCondition(), null, null).GetAwaiter().GetResult();
-                await newAppendBlobClient.CreateIfNotExistsAsync();
+                await newAppendBlobClient.CreateIfNotExistsAsync(
+                    new AppendBlobCreateOptions
+                    {
+                        HttpHeaders = new BlobHttpHeaders
+                        {
+                            ContentType = contentType
+                        }
+                    });
             }
             catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict && ex.ErrorCode == "BlobAlreadyExists")
             {
