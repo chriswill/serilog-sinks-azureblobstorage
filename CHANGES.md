@@ -1,5 +1,10 @@
 # Changes
 
+### 3.2.0 10/18/2023
+- Updated to current Nuget packages, including Serilog 3.0.1.  
+- Adopted [pull request #102](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/102) by @FDUdannychen, which allows for setting the blob content type. Default is text/plain.
+- Adopted [pull request #103](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/103) by @jamesSampica, which writes exceptions to Serilog's selflog.
+
 ### 3.1.3 8/2/2022
 - No code changes, changed Azure.Storage.Blobs to version 12.13.0 to address security vulnerability.
 - 
