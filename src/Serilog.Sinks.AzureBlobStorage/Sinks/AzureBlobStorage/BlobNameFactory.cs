@@ -1,11 +1,7 @@
-using Serilog.Context;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Serilog.Sinks.AzureBlobStorage
@@ -103,7 +99,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             }
             catch (Exception ex)
             {
-
+                Debugging.SelfLog.WriteLine($"Blob pattern was not in a parsable format: {0} {1}", ex.Message, ex.StackTrace);
             }
         }
 
