@@ -17,12 +17,11 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
     public class DefaultAppendBlobBlockWriterUT
     {
         private readonly DefaultAppendBlobBlockWriter defaultAppendBlobBlockWriter;
-        private readonly AppendBlobClient blobClientFake = A.Fake<AppendBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://blob.com/test/test.txt"), new BlobClientOptions(BlobClientOptions.ServiceVersion.V2020_04_08) }));
+        private readonly AppendBlobClient blobClientFake = A.Fake<AppendBlobClient>(opt => opt.WithArgumentsForConstructor(new object[] { new Uri("https://blob.com/test/test.txt"), new BlobClientOptions() }));
 
         private readonly IEnumerable<string> noBlocksToWrite = Enumerable.Empty<string>();
         private readonly IEnumerable<string> singleBlockToWrite = new[] { new string('*', 1024 * 1024 * 3) };
         private readonly IEnumerable<string> multipleBlocksToWrite = new[] { new string('*', 1024 * 512 * 3), new string('*', 1024 * 512 * 3) };
-        private readonly bool targetsNetCore;
 
         public DefaultAppendBlobBlockWriterUT()
         {
@@ -32,8 +31,6 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
                 .GetEntryAssembly()?
                 .GetCustomAttribute<TargetFrameworkAttribute>()?
                 .FrameworkName;
-
-            targetsNetCore = !string.IsNullOrEmpty(framework);
         }
 
         [Fact(DisplayName = "Should write nothing if not blocks were sent")]
@@ -43,9 +40,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             A.CallTo(() => blobClientFake.AppendBlockAsync(
                 A<Stream>.Ignored,
-                A<byte[]>.Ignored,
-                A<AppendBlobRequestConditions>.Ignored,
-                A<IProgress<long>>.Ignored,
+                A<AppendBlobAppendBlockOptions>.Ignored,
                 A<CancellationToken>.Ignored)).MustNotHaveHappened();
         }
 
@@ -56,9 +51,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             A.CallTo(() => blobClientFake.AppendBlockAsync(
                 A<Stream>.Ignored,
-                A<byte[]>.Ignored,
-                A<AppendBlobRequestConditions>.Ignored,
-                A<IProgress<long>>.Ignored,
+                A<AppendBlobAppendBlockOptions>.Ignored,
                 A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
         }
 
@@ -69,9 +62,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
             A.CallTo(() => blobClientFake.AppendBlockAsync(
                 A<Stream>.Ignored,
-                A<byte[]>.Ignored,
-                A<AppendBlobRequestConditions>.Ignored,
-                A<IProgress<long>>.Ignored,
+                A<AppendBlobAppendBlockOptions>.Ignored,
                 A<CancellationToken>.Ignored)).MustHaveHappened(multipleBlocksToWrite.Count(), Times.Exactly);
         }
     }

@@ -22,7 +22,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -33,7 +32,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
     {
         private AppendBlobClient currentAppendBlobClient;
         private string currentBlobName = string.Empty;
-        private int currentBlobRollSequence = 0;
+        private int currentBlobRollSequence;
 
         private static readonly int MaxBlocksOnBlobBeforeRoll = 49500; //small margin to the practical max of 50k, in case of many multiple writers to the same blob
 
@@ -110,7 +109,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
         public async Task<AppendBlobClient> GetBlobReferenceAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType)
         {
-            var blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
+            BlobContainerClient blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
 
             await CreateBlobContainerIfNotExistsAsync(blobContainer, bypassBlobCreationValidation).ConfigureAwait(false);
 
@@ -199,7 +198,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 blobNameFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
-                out var _date));
+                out DateTime _date));
 
             IEnumerable<BlobItem> blobsToDelete = validLogBlobs
                 .OrderByDescending(blobItem => blobItem.Name)
@@ -216,7 +215,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
         private string RemoveRolledBlobNameSerialNum(string blobName)
         {
             string blobNameWoExtension = Path.ChangeExtension(blobName, null);
-            blobNameWoExtension = Regex.Replace(blobNameWoExtension, "-[0-9]{3}$", String.Empty);
+            blobNameWoExtension = Regex.Replace(blobNameWoExtension, "-[0-9]{3}$", string.Empty);
             return blobNameWoExtension + Path.GetExtension(blobName);
         }
     }

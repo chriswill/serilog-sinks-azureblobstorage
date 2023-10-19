@@ -4,8 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Storage;
-using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 
 namespace Serilog.Sinks.AzureBlobStorage
@@ -30,7 +29,7 @@ namespace Serilog.Sinks.AzureBlobStorage
                 {
                     try
                     {
-                        await appendBlobClient.AppendBlockAsync(stream);
+                        Response<BlobAppendInfo> res = await appendBlobClient.AppendBlockAsync(stream);
                     }
                     catch (RequestFailedException ex)
                     {
