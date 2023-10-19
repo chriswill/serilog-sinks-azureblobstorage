@@ -39,6 +39,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         private readonly IAppendBlobBlockPreparer appendBlobBlockPreparer;
         private readonly IAppendBlobBlockWriter appendBlobBlockWriter;
         private readonly BlobNameFactory blobNameFactory;
+        private readonly string contentType;
         private readonly long? blobSizeLimitBytes;
         private readonly int? retainedBlobCountLimit;
         private readonly bool useUTCTimezone;
@@ -66,6 +67,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             ICloudBlobProvider cloudBlobProvider = null,
             IAppendBlobBlockPreparer appendBlobBlockPreparer = null,
             IAppendBlobBlockWriter appendBlobBlockWriter = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             bool useUTCTimezone = false)
@@ -89,6 +91,7 @@ namespace Serilog.Sinks.AzureBlobStorage
             this.cloudBlobProvider = cloudBlobProvider ?? new DefaultCloudBlobProvider();
             this.appendBlobBlockPreparer = appendBlobBlockPreparer ?? new DefaultAppendBlobBlockPreparer();
             this.appendBlobBlockWriter = appendBlobBlockWriter ?? new DefaultAppendBlobBlockWriter();
+            this.contentType = contentType;
             this.blobSizeLimitBytes = blobSizeLimitBytes;
             this.retainedBlobCountLimit = retainedBlobCountLimit;
             this.useUTCTimezone = useUTCTimezone;
@@ -100,7 +103,7 @@ namespace Serilog.Sinks.AzureBlobStorage
         /// <param name="logEvent">The log event to write.</param>
         public void Emit(LogEvent logEvent)
         {
-            AppendBlobClient blob = cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp, logEvent.Properties, useUTCTimezone), bypassContainerCreationValidation, blobSizeLimitBytes: blobSizeLimitBytes).SyncContextSafeWait(waitTimeoutMilliseconds);
+            AppendBlobClient blob = cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobNameFactory.GetBlobName(logEvent.Timestamp, logEvent.Properties, useUTCTimezone), bypassContainerCreationValidation, contentType, blobSizeLimitBytes: blobSizeLimitBytes).SyncContextSafeWait(waitTimeoutMilliseconds);
 
             IEnumerable<string> blocks = appendBlobBlockPreparer.PrepareAppendBlocks(textFormatter, new[] { logEvent });
 

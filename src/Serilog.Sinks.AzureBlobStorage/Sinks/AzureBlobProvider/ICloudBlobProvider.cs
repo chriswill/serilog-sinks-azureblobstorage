@@ -21,7 +21,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
     public interface ICloudBlobProvider
     {
-        Task<AppendBlobClient> GetCloudBlobAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, long? blobSizeLimitBytes = null);
+        Task<AppendBlobClient> GetCloudBlobAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType, long? blobSizeLimitBytes = null);
         Task DeleteArchivedBlobsAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobNameFormat, int retainedBlobCountLimit);
     }
 }

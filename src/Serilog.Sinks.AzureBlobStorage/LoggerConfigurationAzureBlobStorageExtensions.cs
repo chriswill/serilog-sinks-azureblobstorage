@@ -81,6 +81,7 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null, 
             bool useUtcTimeZone = false)
@@ -105,6 +106,7 @@ namespace Serilog
                 batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
+                contentType,
                 blobSizeLimitBytes,
                 retainedBlobCountLimit,
                 useUtcTimeZone);
@@ -143,6 +145,7 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null, 
             bool useUtcTimeZone = false)
@@ -167,6 +170,7 @@ namespace Serilog
                 batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
+                contentType,
                 blobSizeLimitBytes,
                 retainedBlobCountLimit,
                 useUtcTimeZone);
@@ -208,6 +212,7 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             bool useUtcTimeZone = false)
@@ -233,6 +238,7 @@ namespace Serilog
                 batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
+                contentType,
                 blobSizeLimitBytes,
                 retainedBlobCountLimit,
                 useUtcTimeZone);
@@ -274,6 +280,7 @@ namespace Serilog
             int? batchPostingLimit = null,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null, 
             bool useUtcTimeZone = false)
@@ -301,6 +308,7 @@ namespace Serilog
                 period,
                 batchPostingLimit,
                 cloudBlobProvider,
+                contentType,
                 blobSizeLimitBytes,
                 retainedBlobCountLimit,
                 useUtcTimeZone);
@@ -338,6 +346,7 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null, 
             bool useUtcTimeZone = false)
@@ -350,7 +359,7 @@ namespace Serilog
             {
                 var blobServiceClient = new BlobServiceClient(connectionString);
 
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, contentType, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
             }
             catch (Exception ex)
             {
@@ -396,6 +405,7 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             bool useUtcTimeZone = false)
@@ -414,7 +424,7 @@ namespace Serilog
                 }
                 var blobServiceClient = new BlobServiceClient(connectionString);
 
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, contentType, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
             }
             catch (Exception ex)
             {
@@ -459,6 +469,7 @@ namespace Serilog
             TimeSpan? period = null,
             int? batchPostingLimit = null,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null, 
             bool useUtcTimeZone = false)
@@ -479,7 +490,7 @@ namespace Serilog
                 var blobServiceClient = new BlobServiceClient(blobEndpoint, credentials);
 
                 // We set bypassBlobCreationValidation to true explicitly here as the the SAS URL might not have enough permissions to query if the blob exists.
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, true, cloudBlobProvider, contentType, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
             }
             catch (Exception ex)
             {
@@ -522,6 +533,7 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             string managedIdentityClientId = null, 
@@ -544,7 +556,7 @@ namespace Serilog
                 }
                 var blobServiceClient = new BlobServiceClient(storageAccountUri, defaultAzureCredential);
 
-                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
+                return AzureBlobStorage(loggerConfiguration, formatter, blobServiceClient, restrictedToMinimumLevel, storageContainerName, storageFileName, writeInBatches, period, batchPostingLimit, bypassBlobCreationValidation, cloudBlobProvider, contentType, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
             }
             catch (Exception ex)
             {
@@ -589,6 +601,7 @@ namespace Serilog
             bool bypassBlobCreationValidation = false,
             IFormatProvider formatProvider = null,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             string managedIdentityClientId = null, 
@@ -613,6 +626,7 @@ namespace Serilog
                 batchPostingLimit,
                 bypassBlobCreationValidation,
                 cloudBlobProvider,
+                contentType,
                 blobSizeLimitBytes,
                 retainedBlobCountLimit,
                 managedIdentityClientId,
@@ -650,6 +664,7 @@ namespace Serilog
             int? batchPostingLimit = null,
             bool bypassBlobCreationValidation = false,
             ICloudBlobProvider cloudBlobProvider = null,
+            string contentType = "text/plain",
             long? blobSizeLimitBytes = null,
             int? retainedBlobCountLimit = null,
             bool useUtcTimeZone = false)
@@ -665,7 +680,7 @@ namespace Serilog
             {
                 if (writeInBatches)
                 {
-                    AzureBatchingBlobStorageSink azureBlobStorageSink = new AzureBatchingBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, null, null, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
+                    AzureBatchingBlobStorageSink azureBlobStorageSink = new AzureBatchingBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, null, null, contentType, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
                     PeriodicBatchingSinkOptions batchingOptions = new PeriodicBatchingSinkOptions
                     {
                         BatchSizeLimit = batchPostingLimit.GetValueOrDefault(DefaultBatchPostingLimit),
@@ -678,7 +693,7 @@ namespace Serilog
                 }
                 else
                 {
-                    sink = new AzureBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, null, null, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
+                    sink = new AzureBlobStorageSink(blobServiceClient, formatter, storageContainerName, storageFileName, bypassBlobCreationValidation, cloudBlobProvider, null, null, contentType, blobSizeLimitBytes, retainedBlobCountLimit, useUtcTimeZone);
                 }
 
             }
