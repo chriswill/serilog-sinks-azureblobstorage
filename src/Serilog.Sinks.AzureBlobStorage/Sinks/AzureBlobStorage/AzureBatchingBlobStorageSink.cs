@@ -145,10 +145,18 @@ namespace Serilog.Sinks.AzureBlobStorage
 
             try
             {
+                AppendBlobClient blob     = null;
+                string           blobName = null;
+
                 foreach (var logEvent in logEvents)
                 {
-                    var blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName,
-                        blobNameFactory.GetBlobName(lastEvent.Timestamp, logEvent.Properties, useUtcTimeZone), bypassBlobCreationValidation, contentType, blobSizeLimitBytes).ConfigureAwait(false);
+                    var newBlobName = blobNameFactory.GetBlobName(lastEvent.Timestamp, logEvent.Properties, useUtcTimeZone);
+                    if (blob == null || blobName != newBlobName)
+                    {
+                        blobName = newBlobName;
+                        blob = await cloudBlobProvider.GetCloudBlobAsync(blobServiceClient, storageContainerName, blobName,
+                                                                         bypassBlobCreationValidation, contentType, blobSizeLimitBytes).ConfigureAwait(false);
+                    }
 
                     if (!logEventsDictionary.ContainsKey(blob))
                     {

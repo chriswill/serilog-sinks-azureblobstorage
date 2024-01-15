@@ -685,8 +685,7 @@ namespace Serilog
                     {
                         BatchSizeLimit = batchPostingLimit.GetValueOrDefault(DefaultBatchPostingLimit),
                         Period = period.GetValueOrDefault(DefaultPeriod),
-                        EagerlyEmitFirstEvent = true,
-                        QueueLimit = 10000
+                        EagerlyEmitFirstEvent = true
                     };
 
                     sink = new PeriodicBatchingSink(azureBlobStorageSink, batchingOptions);
