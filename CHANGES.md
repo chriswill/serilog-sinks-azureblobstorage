@@ -1,5 +1,9 @@
 # Changes
 
+### 3.3.1 04/28/2024
+- Updated to current Nuget packages, including Azure Identity 1.11.2.  
+- Adopted [pull request #110](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/110) by @Marien-OV, which implements improvements for batching and using the BlobClient.
+- 
 ### 3.3.0 10/18/2023
 - Updated to current Nuget packages, including Serilog 3.0.1.  
 - Adopted [pull request #102](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/102) by @FDUdannychen, which allows for setting the blob content type. Default is text/plain.
