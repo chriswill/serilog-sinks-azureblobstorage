@@ -1,7 +1,10 @@
 # Changes
 
+### 3.3.2 07/13/2024
+- Updated Azure.Identity to fix CVE-2024-35255. Other Nuget packages were updated as well, including Serilog and Serilog.Sinks.PeriodicBatching.
+
 ### 3.3.1 04/28/2024
-- Updated to current Nuget packages, including Azure Identity 1.11.2.  
+- Updated to current Nuget packages, including Azure.Identity 1.11.2.  
 - Adopted [pull request #110](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/110) by @Marien-OV, which implements improvements for batching and using the BlobClient.
 - 
 ### 3.3.0 10/18/2023
