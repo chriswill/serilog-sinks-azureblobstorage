@@ -1,7 +1,7 @@
 # Changes
 
 ### 3.3.2 07/13/2024
-- Updated Azure.Identity to fix CVE-2024-35255. Other Nuget packages were updated as well, including Serilog and Serilog.Sinks.PeriodicBatching.
+- Updated Azure.Identity to fix CVE-2024-35255.  The next release will be a major version update to adopt Serilog 4.0.0 and IBatchedLogEventSink.
 
 ### 3.3.1 04/28/2024
 - Updated to current Nuget packages, including Azure.Identity 1.11.2.  
