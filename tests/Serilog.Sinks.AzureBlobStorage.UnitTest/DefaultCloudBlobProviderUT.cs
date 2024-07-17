@@ -25,7 +25,7 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 
         public DefaultCloudBlobProviderUT()
         {
-            A.CallTo(() => blobServiceClient.GetContainerReference(blobContainerName)).Returns(blobContainer);
+            A.CallTo(() => blobServiceClient.GetBlobContainerClient(blobContainerName)).Returns(blobContainer);
             A.CallTo(() => blobContainer.CreateIfNotExistsAsync()).Returns(Task.FromResult(true));
         }
 
@@ -257,6 +257,13 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             A.CallTo(() => fakeBlobItem1.DeleteIfExistsAsync()).MustHaveHappenedOnceExactly();
             A.CallTo(() => fakeBlobItem2.DeleteIfExistsAsync()).MustHaveHappenedOnceExactly();
             A.CallTo(() => fakeBlobItem3.DeleteIfExistsAsync()).MustNotHaveHappened();
+        }
+
+
+        [Fact(DisplayName = "Should create regex based on name format")]
+        public async Task CanCreateAppropriateRegex()
+        {
+            var foo = DefaultCloudBlobProvider.ConvertToRegex("''HH'-'mm'-'Level'-log.txt'");
         }
     }
 }

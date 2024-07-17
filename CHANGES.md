@@ -1,5 +1,12 @@
 # Changes
 
+### 4.0.0 07/17/2024
+- Updated to Serilog 4.0.0 and implemented support for Serilog native IBatchedLogEventSink. All usage of AzureBlobStorage is now batched on a default 2 second emit interval. The first log event is written immediately.
+- Implemented support for including the log event level (Information, Warning, etc) in the file name template.  This is done by including the `Level` property in the template.  For example, `Log-{yyyy}-{MM}-{dd}-{Level}.txt` will create files like `Log-2024-07-17-Information.txt`.
+- Fixed support for deleting old files by implementing Regex matching instead of DateTime parsing in the delete routine.
+- Added console app sample to demonstrate the new features.
+- This major update may require you to alter your configuration settings where you define usage of this sink.
+
 ### 3.3.2 07/13/2024
 - Updated Azure.Identity to fix CVE-2024-35255.  The next release will be a major version update to adopt Serilog 4.0.0 and IBatchedLogEventSink.
 

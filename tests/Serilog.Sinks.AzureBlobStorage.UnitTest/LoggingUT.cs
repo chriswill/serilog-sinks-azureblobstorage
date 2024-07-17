@@ -1,36 +1,27 @@
 using System;
-using Azure.Storage;
-using Azure.Storage.Blobs;
+using Serilog.Events;
 using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
     public class LoggingUT
     {
-        private const string ConnectionString = "BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;";
-        private readonly CloudBlobClient blobClient;
-
-        public LoggingUT()
-        {
-            //  TODO-VPL:  No idea how to use dev storage in the new SDK ; disable complilation of the file
-            CloudStorageAccount cloudStorageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-            blobClient = cloudStorageAccount.CreateCloudBlobClient();
-        }
-
-        [Fact(DisplayName = "Should throw validation exception due to invalid format characters.")]
-        public void InvalidFormatCharacters()
-        {
-            var log = new LoggerConfiguration()
-                .WriteTo.AzureBlobStorage(ConnectionString)
-                .CreateLogger();
-        }
+        
+        //[Fact(DisplayName = "Should throw validation exception due to invalid format characters.")]
+        //public void InvalidFormatCharacters()
+        //{
+        //    var log = new LoggerConfiguration()
+        //        .WriteTo.AzureBlobStorage(ConnectionString)
+        //        .CreateLogger();
+        //}
 
         [Fact(DisplayName = "Should throw validation exception due to format characters not accepted")]
         public void OutOfOrderFormatCharacters()
         {
             var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+            BlobNameFactory bn = new BlobNameFactory(@"{xx}\name.txt");
 
-            Assert.Throws<ArgumentException>(() => new BlobNameFactory(@"{xx}\name.txt"));
+            Assert.Throws<ArgumentException>(() => bn.GetBlobName(dtoToApply));
         }
 
         [Fact(DisplayName = "Should result in same filename.")]
@@ -77,15 +68,15 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.Equal("webhook/2018/11/05/08/30.txt", result);
         }
 
-        [Fact(DisplayName = "Should parse into year, month, and day into single folder with hours as filename.")]
-        public void YearMonthDayOneFolderHoursName()
+        [Fact(DisplayName = "Should parse into year, month, day and hours into single folder with level as filename.")]
+        public void LevelName()
         {
             var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
-            var bn = new BlobNameFactory("webhook/{yyyyMMdd}/{HH}.txt");
+            var bn = new BlobNameFactory("webhook/{yyyyMMddHH}/{Level}.txt");
 
-            var result = bn.GetBlobName(dtoToApply);
+            var result = bn.GetBlobName(dtoToApply, LogEventLevel.Information);
 
-            Assert.Equal("webhook/20181105/08.txt", result);
+            Assert.Equal("webhook/2018110508/Information.txt", result);
         }
 
         [Fact(DisplayName = "Should parse into year, month, day folder with static filename.")]

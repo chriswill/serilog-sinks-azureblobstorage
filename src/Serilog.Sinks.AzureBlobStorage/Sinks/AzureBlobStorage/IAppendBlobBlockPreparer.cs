@@ -6,6 +6,6 @@ namespace Serilog.Sinks.AzureBlobStorage
 {
     public interface IAppendBlobBlockPreparer
     {
-        IEnumerable<string> PrepareAppendBlocks(ITextFormatter textFormatter, IEnumerable<LogEvent> logEvents);
+        IEnumerable<string> PrepareAppendBlocks(ITextFormatter textFormatter, IReadOnlyCollection<LogEvent> logEvents);
     }
 }

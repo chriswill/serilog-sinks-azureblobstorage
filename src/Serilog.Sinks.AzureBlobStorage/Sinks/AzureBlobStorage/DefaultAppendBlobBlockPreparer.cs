@@ -11,7 +11,7 @@ namespace Serilog.Sinks.AzureBlobStorage
     {
         private const int MaxAppendBlobBlockSize = 1024 * 1024 * 4;
 
-        public IEnumerable<string> PrepareAppendBlocks(ITextFormatter textFormatter, IEnumerable<LogEvent> logEvents)
+        public IEnumerable<string> PrepareAppendBlocks(ITextFormatter textFormatter, IReadOnlyCollection<LogEvent> logEvents)
         {
             if (textFormatter == null)
             {
@@ -68,7 +68,6 @@ namespace Serilog.Sinks.AzureBlobStorage
                 blockContents.Add(currentBlockContent.ToString());
             }
             
-
             return blockContents;
         }
 

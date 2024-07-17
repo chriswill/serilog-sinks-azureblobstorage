@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Description>Serilog event sink that writes to Azure Blob Storage over HTTP.</Description>
 		<Authors>Chris Williams and Serilog.Sinks.AzureBlobStorage contributors</Authors>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net8.0</TargetFrameworks>
 		<AssemblyName>Serilog.Sinks.AzureBlobStorage</AssemblyName>
 		<RootNamespace>Serilog</RootNamespace>
 		<PackageId>Serilog.Sinks.AzureBlobStorage</PackageId>
@@ -38,11 +38,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Identity" Version="1.12.0" />
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.20.0" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.21.0" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-		<PackageReference Include="Serilog" Version="3.1.1" />
-		<PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="4.1.1" />
+		<PackageReference Include="Serilog" Version="4.0.0" />
 	</ItemGroup>
 
 </Project>
