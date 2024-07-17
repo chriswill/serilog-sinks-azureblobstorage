@@ -1,6 +1,6 @@
 # Serilog.Sinks.AzureBlobStorage
 
-![Build status](https://dev.azure.com/cloudscope/Open%20Source/_apis/build/status/SeriLog-AzureBlobSink%20release "Build status")
+![Build status](https://dev.azure.com/cloudscope/Open%20Source/_apis/build/status/SeriLog-AzureBlobSink%20release 'Build status')
 [![NuGet Badge](https://buildstats.info/nuget/Serilog.Sinks.AzureBlobStorage)](https://www.nuget.org/packages/Serilog.Sinks.AzureBlobStorage/)
 
 Writes to a file in [Windows Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/).
@@ -13,15 +13,15 @@ The AzureBlobStorage sink appends data to the blob in text format. Here's a samp
 [2018-10-17 23:03:56 INF] Hello World!
 ```
 
-**Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - .Net Standard 2.0
+**Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - netstandard2.0; netstandard2.1; net6.0; net8.0
 
 **Usage**
 
 ```csharp
-var cloudAccount = CloudStorageAccount.Parse("ConnectionString");
+var azureConnectionString = "my connection string";
 
 var log = new LoggerConfiguration()
-    .WriteTo.AzureBlobStorage(cloudAccount)
+    .WriteTo.AzureBlobStorage(connectionString: azureConnectionString)
     .CreateLogger();
 ```
 
@@ -98,6 +98,13 @@ As of version 2.0.0, the values are not required to appear in descending order, 
 2019/06/20/2019-06-20_14:40.txt
 ```
 
+#### Other substitutions in the file name.
+
+- You can add the LogEventLevel to the file name by using the {Level} descriptor. For example, use this file name template: {Level}.txt.
+- If you push properties into Serilog, you can use those within your file name template. Caution! If you do this, you must do it consistently. For more information, see the 'Multi-tenant support' example below.
+
+All of these substitutions can be used in together and also with the date formats.
+
 #### Maximum file size
 
 You can limit the size of each file created as of version 2.0.0. There is a constructor parameter called `blobSizeLimitBytes`. By
@@ -110,20 +117,20 @@ be deleted every time a new file is created in order to stay within this limit.
 
 #### Batch posting example
 
-By default, whenever there is a new event to post, the Azure Blob Storage sink will send it to Azure storage. For cost-management or performance reasons, you can
-choose to "batch" the posting of new log events.
+As of version 4.0, the AzureBlobStorageSink uses batching exclusively for posting events, and uses Serilog 4.0's native batching features. There is no configuration
+required to take advantage of this feature. Batches are emitted every 2 seconds, if events are waiting. A single batch can include up to 1000 events.
 
-You should create the sink by calling the [AzureBatchingBlobStorageSink](https://github.com/chriswill/serilog-sinks-azureblobstorage/blob/master/src/Serilog.Sinks.AzureBlobStorage/Sinks/AzureBlobStorage/AzureBatchingBlobStorageSink.cs) class, which inherits from PeriodicBatchingSink.
+If you want to control the batch posting limit and the period, you can do so by using the `batchPostingLimit` and `period` parameters.
 
 An example configuration is:
 
 ```csharp
-  .WriteTo.AzureBlobStorage(blobServiceClient, Serilog.Events.LogEventLevel.Information, writeInBatches:true, period:TimeSpan.FromSeconds(15), batchPostingLimit:10)
+  .WriteTo.AzureBlobStorage(blobServiceClient, Serilog.Events.LogEventLevel.Information, period:TimeSpan.FromSeconds(30), batchPostingLimit:50)
 ```
 
-This configuration would post a new batch of events every 15 seconds, unless there were 10 or more events to post, in which case they would post before the time limit.
+This configuration would post a new batch of events every 30 seconds, unless there were 50 or more events to post, in which case they would post before the time limit.
 
-To specify batch posting using configuration, configure use need to set these mandatory values:
+To specify batch posting using appsettings configuration, configure these values:
 
 ```json
 "WriteTo": [
@@ -133,9 +140,8 @@ To specify batch posting using configuration, configure use need to set these ma
             "connectionString": "",
             "storageContainerName": "",
             "storageFileName": "",
-            "writeInBatches": "true", // mandatory
-            "period": "0.00:00:30", // mandatory sets the period to 30 secs
-            "batchPostingLimit": "50", // optional
+            "period": "00:00:30", // optional sets the period to 30 secs
+            "batchPostingLimit": "50", // optional, sets the max batch limit to 50
         }
     }
   ]
@@ -149,8 +155,8 @@ To configure, create a storage filename that includes a tenant id property.
 
 ```json
 loggerConfiguration.WriteTo.
-     AzureBlobStorage("blobconnectionstring", 
-     LogEventLevel.Information, "Containername", storageFileName: "/{TenantId}/{yyyy}/{MM}/log{yyyy}{MM}{dd}.txt", 
+     AzureBlobStorage("blobconnectionstring",
+     LogEventLevel.Information, "Containername", storageFileName: "/{TenantId}/{yyyy}/{MM}/log{yyyy}{MM}{dd}.txt",
      writeInBatches: true, period: TimeSpan.FromSeconds(15), batchPostingLimit: 100);
 ```
 

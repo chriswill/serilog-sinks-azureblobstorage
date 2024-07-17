@@ -25,10 +25,11 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
+using Serilog.Events;
 
 namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
-    internal class DefaultCloudBlobProvider : ICloudBlobProvider
+    public class DefaultCloudBlobProvider : ICloudBlobProvider
     {
         private AppendBlobClient currentAppendBlobClient;
         private string currentBlobName = string.Empty;
@@ -53,27 +54,27 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
                 // The blob is correct but needs to be rolled over
                 currentBlobRollSequence++;
-                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType);
+                await ValidateAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType);
             }
             else
             {
                 //first time to get a cloudblob or the blobname has changed
                 currentBlobRollSequence = 0;
-                await GetAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType, blobSizeLimitBytes);
+                await ValidateAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType, blobSizeLimitBytes);
             }
 
             return currentAppendBlobClient;
         }
 
-        private async Task GetAppendBlobClientAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType, long? blobSizeLimitBytes = null)
+        private async Task ValidateAppendBlobClientAsync(BlobServiceClient blobServiceClient, string blobContainerName, string blobName, bool bypassBlobCreationValidation, string contentType, long? blobSizeLimitBytes = null)
         {
             //try to get a reference to a AppendBlobClient which is below the max blocks threshold.
             for (int i = currentBlobRollSequence; i < 999; i++)
             {
                 string rolledBlobName = GetRolledBlobName(blobName, i);
                 AppendBlobClient newAppendBlobClient = await GetBlobReferenceAsync(blobServiceClient, blobContainerName, rolledBlobName, bypassBlobCreationValidation, contentType);
-                var blobPropertiesResponse = await newAppendBlobClient.GetPropertiesAsync();
-                var blobProperties = blobPropertiesResponse.Value;
+                Response<BlobProperties> blobPropertiesResponse = await newAppendBlobClient.GetPropertiesAsync();
+                BlobProperties blobProperties = blobPropertiesResponse.Value;
                 
                 if (ValidateBlobProperties(blobProperties, blobSizeLimitBytes))
                 {
@@ -118,10 +119,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             {
                 newAppendBlobClient = blobContainer.GetAppendBlobClient(blobName);
 
-                //  TODO-VPL:  CreateOrReplaceAsync does not exist in the new SDK
-                //  TODO-VPL:  AccessCondition is nowhere to be seen...  here is the original line:
-                //newAppendBlobClient.CreateOrReplaceAsync(AccessCondition.GenerateIfNotExistsCondition(), null, null).GetAwaiter().GetResult();
-                await newAppendBlobClient.CreateIfNotExistsAsync(
+                Response<BlobContentInfo> resp = await newAppendBlobClient.CreateIfNotExistsAsync(
                     new AppendBlobCreateOptions
                     {
                         HttpHeaders = new BlobHttpHeaders
@@ -140,14 +138,6 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 Debugging.SelfLog.WriteLine($"Failed to create blob: {ex}");
                 throw;
             }
-
-            //  TODO-VPL:  This is done differently in the new SDK ; we need to do a get properties and they return the properties, i.e. done elsewhere
-            //if (newAppendBlobClient != null)
-            //{
-            //    //this is the first time the code gets its hands on this blob reference, get the blob properties from azure.
-            //    //used later on to know when to roll over the file if the 50.000 max blocks is getting close.
-            //    await newAppendBlobClient.FetchAttributesAsync().ConfigureAwait(false);
-            //}
 
             return newAppendBlobClient;
         }
@@ -177,6 +167,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
             BlobContainerClient blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
             List<BlobItem> logBlobs = new List<BlobItem>();
+            
 
             AsyncPageable<BlobItem> blobItems = blobContainer.GetBlobsAsync();
             
@@ -193,15 +184,13 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
                 await enumerator.DisposeAsync();
             }
 
-            IEnumerable<BlobItem> validLogBlobs = logBlobs.Where(blobItem => DateTime.TryParseExact(
-                RemoveRolledBlobNameSerialNum(blobItem.Name),
-                blobNameFormat,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeLocal,
-                out DateTime _date));
+            BlobNameFactory factory = new BlobNameFactory(blobNameFormat);
+            string regex = factory.GetBlobRegex();
+
+            IEnumerable<BlobItem> validLogBlobs = logBlobs.Where(blobItem => Regex.IsMatch(RemoveRolledBlobNameSerialNum(blobItem.Name), regex));
 
             IEnumerable<BlobItem> blobsToDelete = validLogBlobs
-                .OrderByDescending(blobItem => blobItem.Name)
+                .OrderByDescending(blobItem => blobItem.Properties.CreatedOn)
                 .Skip(retainedBlobCountLimit);
 
             foreach (var blobItem in blobsToDelete)
@@ -218,5 +207,6 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
             blobNameWoExtension = Regex.Replace(blobNameWoExtension, "-[0-9]{3}$", string.Empty);
             return blobNameWoExtension + Path.GetExtension(blobName);
         }
+
     }
 }
