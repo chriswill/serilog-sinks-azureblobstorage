@@ -1,5 +1,9 @@
 # Changes
 
+### 4.0.1 07/18/2024
+- Updated references so that Microsoft.Bcl.AsyncInterfaces is only required for netstandard2.0.
+- Updated/clarified extension method that supports Sas token authentication.
+
 ### 4.0.0 07/17/2024
 - Updated to Serilog 4.0.0 and implemented support for Serilog native IBatchedLogEventSink. All usage of AzureBlobStorage is now batched on a default 2 second emit interval. The first log event is written immediately.
 - Implemented support for including the log event level (Information, Warning, etc) in the file name template.  This is done by including the `Level` property in the template.  For example, `Log-{yyyy}-{MM}-{dd}-{Level}.txt` will create files like `Log-2024-07-17-Information.txt`.

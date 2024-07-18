@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,7 +24,6 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using Serilog.Events;
 
 namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 {
@@ -112,7 +110,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
         {
             BlobContainerClient blobContainer = blobServiceClient.GetBlobContainerClient(blobContainerName);
 
-            await CreateBlobContainerIfNotExistsAsync(blobContainer, bypassBlobCreationValidation).ConfigureAwait(false);
+            await CreateBlobContainerIfNotExistsAsync(blobContainer, bypassBlobCreationValidation);
 
             AppendBlobClient newAppendBlobClient = null;
             try
