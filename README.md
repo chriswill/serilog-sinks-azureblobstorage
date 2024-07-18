@@ -25,6 +25,8 @@ var log = new LoggerConfiguration()
     .CreateLogger();
 ```
 
+Because there are many similar method invocations using a string, it is recommended that you use named parameters as shown above.
+
 You can also specify a named connection string, using the connectionStringName property in the constructor.
 
 You must also provide an IConfiguration instance, either manually in the constructor or through dependency injection.

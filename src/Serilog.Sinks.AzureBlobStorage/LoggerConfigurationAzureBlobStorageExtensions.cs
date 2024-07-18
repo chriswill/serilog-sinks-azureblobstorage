@@ -24,7 +24,7 @@ using Azure.Storage.Blobs;
 using Azure;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
-using Serilog.Formatting.Json;
+using Serilog.Core;
 
 namespace Serilog
 {
@@ -185,7 +185,7 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(
             this LoggerSinkConfiguration loggerConfiguration,
             string connectionStringName,
-            IConfiguration configuration = null,
+            IConfiguration configuration,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
             string storageFileName = null,
@@ -227,8 +227,8 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="sharedAccessSignature">The storage account/blob SAS key.</param>
-        /// <param name="accountName">The storage account name.</param>
-        /// <param name="blobEndpoint">The (optional) blob endpoint. Only needed for testing.</param>
+        /// <param name="accountUrl">The blob endpoint, in string format. Either this or blobEndpoint is required. Recommended for use with appsettings configuration. Example: https://myaccount.blob.core.windows.net</param>
+        /// <param name="blobEndpoint">The blob endpoint, in Uri format.  Either this or accountUrl is required.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -246,7 +246,7 @@ namespace Serilog
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             string sharedAccessSignature,
-            string accountName,
+            string accountUrl = null,
             Uri blobEndpoint = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
@@ -263,7 +263,7 @@ namespace Serilog
             bool useUtcTimeZone = false)
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
-            if (string.IsNullOrWhiteSpace(accountName)) throw new ArgumentNullException(nameof(accountName));
+            if (string.IsNullOrWhiteSpace(accountUrl) && blobEndpoint == null) throw new ArgumentNullException(nameof(accountUrl));
             if (string.IsNullOrWhiteSpace(sharedAccessSignature))
                 throw new ArgumentNullException(nameof(sharedAccessSignature));
 
@@ -271,7 +271,7 @@ namespace Serilog
                 loggerConfiguration,
                 new MessageTemplateTextFormatter(outputTemplate, formatProvider),
                 sharedAccessSignature,
-                accountName,
+                accountUrl,
                 blobEndpoint,
                 restrictedToMinimumLevel,
                 storageContainerName,
@@ -448,8 +448,8 @@ namespace Serilog
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="formatter">Use a Serilog ITextFormatter such as CompactJsonFormatter to store object in data column of Azure blob</param>
         /// <param name="sharedAccessSignature">The storage account/blob SAS key.</param>
-        /// <param name="accountName">The storage account name.</param>
-        /// <param name="blobEndpoint">The (optional) blob endpoint. Only needed for testing.</param>
+        /// <param name="accountUrl">The blob endpoint, in string format. Either this or blobEndpoint is required. Recommended for use with appsettings configuration. Example: https://myaccount.blob.core.windows.net</param>
+        /// <param name="blobEndpoint">The blob endpoint, in Uri format.  Either this or accountUrl is required.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -466,7 +466,7 @@ namespace Serilog
         public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
             string sharedAccessSignature,
-            string accountName,
+            string accountUrl = null,
             Uri blobEndpoint = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
@@ -482,11 +482,11 @@ namespace Serilog
         {
             if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
-            if (string.IsNullOrWhiteSpace(accountName)) throw new ArgumentNullException(nameof(accountName));
+            if (string.IsNullOrWhiteSpace(accountUrl) && blobEndpoint == null) throw new ArgumentNullException(nameof(accountUrl));
             if (string.IsNullOrWhiteSpace(sharedAccessSignature)) throw new ArgumentNullException(nameof(sharedAccessSignature));
 
             AzureSasCredential credentials = new AzureSasCredential(sharedAccessSignature); 
-            BlobServiceClient blobServiceClient = new BlobServiceClient(blobEndpoint, credentials);
+            BlobServiceClient blobServiceClient = new BlobServiceClient(blobEndpoint ?? new Uri(accountUrl), credentials);
 
             AzureBlobStorageSinkOptions options = new AzureBlobStorageSinkOptions();
             options.Formatter = formatter;
@@ -599,7 +599,7 @@ namespace Serilog
             catch (Exception ex)
             {
                 Debugging.SelfLog.WriteLine($"Error configuring AzureBlobStorage: {ex}");
-                var sink = new LoggerConfiguration().CreateLogger();
+                Logger sink = new LoggerConfiguration().CreateLogger();
                 return loggerConfiguration.Sink(sink);
             }
         }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -7,8 +8,8 @@ namespace SampleConsoleApp
 {
     internal class Program
     {
-        private const string OutputTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u1}] {Message:lj}{NewLine}{Exception}";
-
+        private const string OutputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
+        
         static async Task<int> Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -29,8 +30,6 @@ namespace SampleConsoleApp
                         .ReadFrom.Configuration(context.Configuration)
                     )
                     .Build();
-
-                Serilog.Debugging.SelfLog.Enable(Console.Error);
 
                 await app.RunAsync();
 
