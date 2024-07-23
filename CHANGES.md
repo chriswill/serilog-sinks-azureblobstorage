@@ -1,5 +1,9 @@
 # Changes
 
+### 4.0.2 07/23/2024
+- Updated System.Text.Json to 8.0.4 to address [CVE-2024-30105](https://github.com/advisories/GHSA-hh2w-p6rv-4g7w).
+- Replaced Microsoft.Extensions.Hosting with Microsoft.Extensions.Configuration.Abstractions.
+
 ### 4.0.1 07/18/2024
 - Updated references so that Microsoft.Bcl.AsyncInterfaces is only required for netstandard2.0.
 - Updated/clarified extension method that supports Sas token authentication.
