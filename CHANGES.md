@@ -1,5 +1,9 @@
 # Changes
 
+### 4.0.3 08/20/2024
+- Changed constructors using a managedIdentityClientId to make it optional.  If not provided, the sink will use the default Azure credential chain.
+- Updated Nugets for Serilog and Azure.Storage.Blobs to the latest versions.
+
 ### 4.0.2 07/23/2024
 - Updated System.Text.Json to 8.0.4 to address [CVE-2024-30105](https://github.com/advisories/GHSA-hh2w-p6rv-4g7w).
 - Replaced Microsoft.Extensions.Hosting with Microsoft.Extensions.Configuration.Abstractions.

@@ -525,6 +525,7 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="formatter">Use a Serilog ITextFormatter such as CompactJsonFormatter to store object in data column of Azure blob</param>
+        /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
         /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authenticate using Azure Identity</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
@@ -536,14 +537,13 @@ namespace Serilog
         /// <param name="contentType">The content type to use for the Azure Append Blob.  The default is text/plain.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
-        /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
         /// <param name="useUtcTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
             ITextFormatter formatter,
-            string managedIdentityClientId,
             Uri storageAccountUri,
+            string managedIdentityClientId = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
             string storageFileName = null,
@@ -610,6 +610,7 @@ namespace Serilog
         /// </summary>
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="storageAccountUri">The Cloud Storage Account Uri to use to authenticate using Azure Identity</param>
+        /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="storageContainerName">Container where the log entries will be written to.</param>
         /// <param name="storageFileName">File name that log entries will be written to.</param>
@@ -622,13 +623,12 @@ namespace Serilog
         /// <param name="contentType">The content type to use for the Azure Append Blob.  The default is text/plain.</param>
         /// <param name="blobSizeLimitBytes">The maximum file size to allow before a new one is rolled, expressed in bytes.</param>
         /// <param name="retainedBlobCountLimit">The number of latest blobs to be retained in the container always. Deletes older blobs when this limit is crossed.</param>
-        /// <param name="managedIdentityClientId">Specifies the client id of the Azure ManagedIdentity in the case of user assigned identity.</param>
         /// <param name="useUtcTimeZone">Use UTC Timezone for logging events.</param>
         /// <returns>Logger configuration, allowing configuration to continue.</returns>
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration AzureBlobStorage(this LoggerSinkConfiguration loggerConfiguration,
-            string managedIdentityClientId,
             Uri storageAccountUri,
+            string managedIdentityClientId = null,
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             string storageContainerName = null,
             string storageFileName = null,
@@ -653,8 +653,8 @@ namespace Serilog
             return AzureBlobStorage(
                 loggerConfiguration,
                 new MessageTemplateTextFormatter(outputTemplate, formatProvider),
-                managedIdentityClientId,
                 storageAccountUri,
+                managedIdentityClientId,
                 restrictedToMinimumLevel,
                 storageContainerName,
                 storageFileName,
