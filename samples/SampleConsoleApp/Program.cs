@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using System.Diagnostics;
 
 namespace SampleConsoleApp
 {
@@ -30,6 +31,8 @@ namespace SampleConsoleApp
                         .ReadFrom.Configuration(context.Configuration)
                     )
                     .Build();
+
+                Serilog.Debugging.SelfLog.Enable(msg => Debug.WriteLine(msg));
 
                 await app.RunAsync();
 

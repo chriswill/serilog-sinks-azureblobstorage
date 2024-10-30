@@ -1,5 +1,8 @@
 # Changes
 
+### 4.0.5 10/30/2024
+- Updated Nugets to the latest versions for all dependencies.  There was a security vulnerability in System.Text.Json that has been addressed by updating.
+
 ### 4.0.3 08/20/2024
 - Changed constructors using a managedIdentityClientId to make it optional.  If not provided, the sink will use the default Azure credential chain.
 - Updated Nugets for Serilog and Azure.Storage.Blobs to the latest versions.
