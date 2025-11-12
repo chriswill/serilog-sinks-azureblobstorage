@@ -1,7 +1,8 @@
 # Serilog.Sinks.AzureBlobStorage
 
 ![Build status](https://dev.azure.com/cloudscope/Open%20Source/_apis/build/status/SeriLog-AzureBlobSink%20release 'Build status')
-[![NuGet Badge](https://buildstats.info/nuget/Serilog.Sinks.AzureBlobStorage)](https://www.nuget.org/packages/Serilog.Sinks.AzureBlobStorage/)
+[![NuGet version](https://badge.fury.io/nu/Serilog.Sinks.AzureBlobStorage.svg?icon=si%3Anuget)](https://badge.fury.io/nu/Serilog.Sinks.AzureBlobStorage)
+![NuGet Downloads](https://img.shields.io/nuget/dt/Serilog.Sinks.AzureBlobStorage)
 
 Writes to a file in [Windows Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/).
 
