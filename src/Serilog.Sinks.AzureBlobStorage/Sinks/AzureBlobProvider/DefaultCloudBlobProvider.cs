@@ -52,7 +52,7 @@ namespace Serilog.Sinks.AzureBlobStorage.AzureBlobProvider
 
                 // The blob is correct but needs to be rolled over
                 currentBlobRollSequence++;
-                await ValidateAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType);
+                await ValidateAppendBlobClientAsync(blobServiceClient, blobContainerName, blobName, bypassBlobCreationValidation, contentType, blobSizeLimitBytes);
             }
             else
             {
