@@ -1,6 +1,6 @@
 # Changes
 
-### Unreleased
+### 5.0.0 11/12/2026
 - Fixed high memory usage when `retainedBlobCountLimit` is used with a container that holds many blobs ([#125](https://github.com/chriswill/serilog-sinks-azureblobstorage/issues/125), [#131](https://github.com/chriswill/serilog-sinks-azureblobstorage/issues/131)). Old blobs are now looked for only when the sink starts writing to a new blob instead of on every batch, the listing is limited to blobs that share the fixed leading part of the file name template, and only the names of matching blobs are kept in memory.
 - Blob retention now only deletes blobs whose whole name fits the file name template. Previously a blob could be deleted if any part of its name fit the template.
 - A failure to write to blob storage is now rethrown after it is written to the SelfLog, so that Serilog retries the batch. Previously the events were lost. A retried batch can lead to duplicate log entries if part of it had been written already.
