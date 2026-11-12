@@ -14,6 +14,8 @@ using System.Threading;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
+    // Tests that capture the SelfLog must not run side by side, as the SelfLog is shared.
+    [Collection("SelfLog")]
     public class DefaultAppendBlobBlockWriterUT
     {
         private readonly DefaultAppendBlobBlockWriter defaultAppendBlobBlockWriter;
@@ -64,6 +66,35 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
                 A<Stream>.Ignored,
                 A<AppendBlobAppendBlockOptions>.Ignored,
                 A<CancellationToken>.Ignored)).MustHaveHappened(multipleBlocksToWrite.Count(), Times.Exactly);
+        }
+
+        [Fact(DisplayName = "Should rethrow a failure to append a block, so that the batch can be retried")]
+        public async Task RethrowAppendFailure()
+        {
+            A.CallTo(() => blobClientFake.AppendBlockAsync(
+                A<Stream>.Ignored,
+                A<AppendBlobAppendBlockOptions>.Ignored,
+                A<CancellationToken>.Ignored)).Throws(new Azure.RequestFailedException(503, "Server {busy}"));
+
+            using (StringWriter selfLog = new StringWriter())
+            {
+                Debugging.SelfLog.Enable(TextWriter.Synchronized(selfLog));
+                try
+                {
+                    await Assert.ThrowsAsync<Azure.RequestFailedException>(() => defaultAppendBlobBlockWriter.WriteBlocksToAppendBlobAsync(blobClientFake, multipleBlocksToWrite));
+                }
+                finally
+                {
+                    Debugging.SelfLog.Disable();
+                }
+
+                Assert.Contains("Server {busy}", selfLog.ToString());
+            }
+
+            A.CallTo(() => blobClientFake.AppendBlockAsync(
+                A<Stream>.Ignored,
+                A<AppendBlobAppendBlockOptions>.Ignored,
+                A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
         }
     }
 }

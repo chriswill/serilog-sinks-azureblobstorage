@@ -164,5 +164,38 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             string actualResult = blobNameFactory.GetBlobRegex();
             Assert.Equal("\\S*-name\\.txt", actualResult);
         }
+
+        [Fact(DisplayName = "Should throw validation exception when a brace is not closed.")]
+        public void UnclosedBrace()
+        {
+            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+            BlobNameFactory bn = new BlobNameFactory("{yyyy}/{MM/name.txt");
+
+            Assert.Throws<ArgumentException>(() => bn.GetBlobName(dtoToApply, LogEventLevel.Information));
+        }
+
+        [Fact(DisplayName = "Should use property values as they are, also when they contain braces.")]
+        public void PropertyValueWithBraces()
+        {
+            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+            var properties = new Dictionary<string, LogEventPropertyValue> { { "Tenant", new ScalarValue("a{dd}b") } };
+            BlobNameFactory bn = new BlobNameFactory("{Tenant}/{yyyy}.txt");
+
+            string result = bn.GetBlobName(dtoToApply, LogEventLevel.Information, new ReadOnlyDictionary<string, LogEventPropertyValue>(properties));
+
+            Assert.Equal("a{dd}b/2018.txt", result);
+        }
+
+        [Fact(DisplayName = "Should leave out a property that the log event does not have.")]
+        public void MissingProperty()
+        {
+            var dtoToApply = new DateTimeOffset(2018, 11, 5, 8, 30, 0, new TimeSpan(-5, 0, 0));
+            var properties = new Dictionary<string, LogEventPropertyValue> { { "Tenant", new ScalarValue("a") } };
+            BlobNameFactory bn = new BlobNameFactory("{Tenant}/{ant}/{yyyy}-{Level}.txt");
+
+            string result = bn.GetBlobName(dtoToApply, LogEventLevel.Warning, new ReadOnlyDictionary<string, LogEventPropertyValue>(properties));
+
+            Assert.Equal("a//2018-Warning.txt", result);
+        }
     }
 }

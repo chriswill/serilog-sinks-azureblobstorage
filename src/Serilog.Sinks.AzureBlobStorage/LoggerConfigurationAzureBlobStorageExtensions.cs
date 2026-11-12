@@ -353,7 +353,7 @@ namespace Serilog
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine($"Error configuring AzureBlobStorage: {ex}");
+                Debugging.SelfLog.WriteLine("Error configuring AzureBlobStorage: {0}", ex);
                 var sink = new LoggerConfiguration().CreateLogger();
                 return loggerConfiguration.Sink(sink);
             }
@@ -435,7 +435,7 @@ namespace Serilog
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine($"Error configuring AzureBlobStorage: {ex}");
+                Debugging.SelfLog.WriteLine("Error configuring AzureBlobStorage: {0}", ex);
                 var sink = new LoggerConfiguration().CreateLogger();
                 return loggerConfiguration.Sink(sink);
             }
@@ -514,7 +514,7 @@ namespace Serilog
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine($"Error configuring AzureBlobStorage: {ex}");
+                Debugging.SelfLog.WriteLine("Error configuring AzureBlobStorage: {0}", ex);
                 var sink = new LoggerConfiguration().CreateLogger();
                 return loggerConfiguration.Sink(sink);
             }
@@ -598,7 +598,7 @@ namespace Serilog
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine($"Error configuring AzureBlobStorage: {ex}");
+                Debugging.SelfLog.WriteLine("Error configuring AzureBlobStorage: {0}", ex);
                 Logger sink = new LoggerConfiguration().CreateLogger();
                 return loggerConfiguration.Sink(sink);
             }
@@ -734,7 +734,7 @@ namespace Serilog
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine($"Error configuring AzureBlobStorage: {ex}");
+                Debugging.SelfLog.WriteLine("Error configuring AzureBlobStorage: {0}", ex);
                 var sink = new LoggerConfiguration().CreateLogger();
                 return loggerConfiguration.Sink(sink);
             }
