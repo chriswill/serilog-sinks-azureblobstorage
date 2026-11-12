@@ -2,6 +2,7 @@ using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Serilog.Sinks.AzureBlobStorage
@@ -18,120 +19,156 @@ namespace Serilog.Sinks.AzureBlobStorage
         private readonly char[] dateFormatChars = { 'y', 'M', 'd', 'H', 'm' };
         private readonly List<string> supportedProperties = new List<string>{"Level"};
         private readonly string baseBlobName;
-        
+
+        // The base name split into literal text and {tokens}, or null if the base name could not be parsed.
+        private readonly List<NamePart> nameParts;
+
+        private sealed class NamePart
+        {
+            public string Text;
+            public bool IsToken;
+            public bool IsDateFormat;
+            public bool UsesOnlySupportedPropertyChars;
+        }
+
         public BlobNameFactory(string baseBlobName)
         {
             this.baseBlobName = baseBlobName ?? throw new ArgumentNullException(nameof(baseBlobName));
+            nameParts = ParseNameParts(baseBlobName);
+        }
+
+        /// <summary>
+        /// Splits the base name once, so that this work is not repeated for every log event.
+        /// </summary>
+        private List<NamePart> ParseNameParts(string name)
+        {
+            List<NamePart> parts = new List<NamePart>();
+            int position = 0;
+
+            while (position < name.Length)
+            {
+                int openBraceIndex = name.IndexOf('{', position);
+                if (openBraceIndex < 0)
+                {
+                    break;
+                }
+
+                int closeBraceIndex = name.IndexOf('}', openBraceIndex);
+                if (closeBraceIndex < 0)
+                {
+                    // A brace was opened but never closed
+                    return null;
+                }
+
+                if (openBraceIndex > position)
+                {
+                    parts.Add(new NamePart { Text = name.Substring(position, openBraceIndex - position) });
+                }
+
+                string token = name.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+                parts.Add(new NamePart
+                {
+                    Text = token,
+                    IsToken = true,
+                    IsDateFormat = token.All(c => dateFormatChars.Contains(c)),
+                    UsesOnlySupportedPropertyChars = token.All(c => supportedProperties.Any(p => p.IndexOf(c) >= 0))
+                });
+
+                position = closeBraceIndex + 1;
+            }
+
+            if (position < name.Length)
+            {
+                parts.Add(new NamePart { Text = name.Substring(position) });
+            }
+
+            return parts;
         }
 
         public string GetBlobName(DateTimeOffset dtTimeOffset, LogEventLevel? logLevel = null, IReadOnlyDictionary<string, LogEventPropertyValue> properties = null, bool useUtcTimeZone = false)
         {
-            ValidateBlobName(logLevel, properties);
+            ValidateBlobName(properties);
 
-            // Create copy of the base name
-            string defaultName = (string)baseBlobName.Clone();
-            // Find first date format by finding first set of braces
-            int openBraceIndex = defaultName.IndexOf('{');
-            int closeBraceIndex = defaultName.IndexOf('}');
+            StringBuilder blobName = new StringBuilder(baseBlobName.Length + 16);
 
-            while (openBraceIndex != -1 && closeBraceIndex != -1)
+            foreach (NamePart part in nameParts)
             {
-                // Get date format inside the braces
-                string nameFormat = defaultName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
-
-                // Replace braces and supplied format with formatted date time
-                defaultName = defaultName.Remove(openBraceIndex, closeBraceIndex - openBraceIndex + 1);
-
-                char[] charList = nameFormat.ToCharArray();
-                if (charList.All(c => dateFormatChars.Contains(c)))
+                if (!part.IsToken)
                 {
-                    defaultName = defaultName.Insert(openBraceIndex, useUtcTimeZone ? dtTimeOffset.UtcDateTime.ToString(nameFormat) : dtTimeOffset.ToString(nameFormat));
+                    blobName.Append(part.Text);
                 }
-                else if ("Level".Equals(nameFormat))
+                else if (part.IsDateFormat)
                 {
-                    defaultName = defaultName.Insert(openBraceIndex, logLevel.ToString() ?? "Unknown");
+                    // Replace braces and supplied format with formatted date time
+                    blobName.Append(useUtcTimeZone ? dtTimeOffset.UtcDateTime.ToString(part.Text) : dtTimeOffset.ToString(part.Text));
                 }
-                else
+                else if ("Level".Equals(part.Text))
                 {
-                    if (properties != null && properties.ContainsKey(nameFormat))
-                    {
-                        if (properties[nameFormat] is ScalarValue)
-                        {
-                            string propertyValue = ((ScalarValue)properties[nameFormat]).Value.ToString();
-                            defaultName = defaultName.Insert(openBraceIndex, propertyValue);
-                        }
-                    }
+                    blobName.Append(logLevel.ToString());
                 }
-
-                // Find next set of braces
-                openBraceIndex = defaultName.IndexOf('{');
-                closeBraceIndex = defaultName.IndexOf('}');
+                else if (properties != null && properties.TryGetValue(part.Text, out LogEventPropertyValue propertyValue) && propertyValue is ScalarValue scalarValue)
+                {
+                    blobName.Append(scalarValue.Value);
+                }
             }
 
-            return defaultName;
+            return blobName.ToString();
         }
 
         /// <summary>
         /// Validate the base blob name provided.
         /// </summary>
-        private void ValidateBlobName(LogEventLevel? logLevel = null, IReadOnlyDictionary<string, LogEventPropertyValue> properties = null)
+        private void ValidateBlobName(IReadOnlyDictionary<string, LogEventPropertyValue> properties)
         {
             try
             {
-                int i = 0;
-                while (i < baseBlobName.Length)
+                if (nameParts == null)
                 {
-                    int openBraceIndex = baseBlobName.IndexOf('{', i);
+                    throw new ArgumentException($"{nameof(baseBlobName)} contains a brace that is not closed.");
+                }
 
-                    if (openBraceIndex < 0)
+                foreach (NamePart part in nameParts)
+                {
+                    // Date formats and the supported properties were recognised when the name was parsed.
+                    if (!part.IsToken || part.IsDateFormat || part.UsesOnlySupportedPropertyChars)
                     {
-                        break;
+                        continue;
                     }
 
-                    // Get the date format characters within the current pair of curly braces.
-                    int closeBraceIndex = baseBlobName.IndexOf('}', openBraceIndex);
-                    string dateFormat = baseBlobName.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
-
-                    //// Check all characters in the date format string to make sure
-                    //// they exist in currently expected format character list.
-                    char[] charList = dateFormat.ToCharArray();
-                    List<char> supportedPropertyChars = new List<char>();
-                    List<char> propertyChars = new List<char>();
-                    if (properties != null)
+                    //// Check all characters in the token to make sure
+                    //// they exist in the names of the properties of the log event.
+                    foreach (char c in part.Text)
                     {
-                        foreach (KeyValuePair<string, LogEventPropertyValue> logEventPropertyValue in properties)
+                        if (!IsPropertyNameChar(c, properties))
                         {
-                            foreach (char c in logEventPropertyValue.Key.Where(c => !propertyChars.Contains(c)))
-                            {
-                                propertyChars.Add(c);
-                            }
+                            throw new ArgumentException($"{nameof(baseBlobName)} contains unexpected format character.");
                         }
                     }
-
-                    foreach (string s in supportedProperties)
-                    {
-                        foreach (char c in s.ToCharArray())
-                        {
-                            if (!supportedPropertyChars.Contains(c))
-                            {
-                                supportedPropertyChars.Add(c);
-                            }
-                        }
-                    }
-
-                    if (charList.Any(c => !dateFormatChars.Contains(c)) && charList.Any(c => !propertyChars.Contains(c)) && charList.Any(c => !supportedPropertyChars.Contains(c)))
-                    {
-                        throw new ArgumentException($"{nameof(baseBlobName)} contains unexpected format character.");
-                    }
-
-                    i = closeBraceIndex + 1;
                 }
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine($"Blob pattern was not in a parsable format: {0} {1}", ex.Message, ex.StackTrace);
+                Debugging.SelfLog.WriteLine("Blob pattern was not in a parsable format: {0} {1}", ex.Message, ex.StackTrace);
                 throw;
             }
+        }
+
+        private static bool IsPropertyNameChar(char c, IReadOnlyDictionary<string, LogEventPropertyValue> properties)
+        {
+            if (properties == null)
+            {
+                return false;
+            }
+
+            foreach (KeyValuePair<string, LogEventPropertyValue> property in properties)
+            {
+                if (property.Key.IndexOf(c) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         

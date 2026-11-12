@@ -14,7 +14,7 @@ The AzureBlobStorage sink appends data to the blob in text format. Here's a samp
 [2018-10-17 23:03:56 INF] Hello World!
 ```
 
-**Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - netstandard2.0; netstandard2.1; net6.0; net8.0
+**Package** - [Serilog.Sinks.AzureBlobStorage](http://nuget.org/packages/serilog.sinks.azureblobstorage) | **Platforms** - netstandard2.0; net8.0; net10.0
 
 **Usage**
 
@@ -117,6 +117,10 @@ default, this is null, meaning that files can grow without limitation. By provid
 
 You can limit the number of files created as of version 2.1.0. There is a constructor parameter called `retainedBlobCountLimit` to control this behavior. Once the limit is reached, a file will
 be deleted every time a new file is created in order to stay within this limit.
+
+Only blobs whose full name fits your `storageFileName` template are counted and deleted. The check for old files runs when the sink starts writing to a new file, not on every batch,
+and it only lists blobs that share the fixed leading part of your template (the text before the first `{`). If you write to a container that holds many other blobs,
+start your template with a fixed folder or name, such as `logs/{yyyy}/{MM}/{dd}/log.txt`, so that the other blobs are never listed.
 
 #### Batch posting example
 

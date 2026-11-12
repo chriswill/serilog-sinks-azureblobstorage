@@ -7,6 +7,8 @@ using Xunit;
 
 namespace Serilog.Sinks.AzureBlobStorage.UnitTest
 {
+    // Tests that capture the SelfLog must not run side by side, as the SelfLog is shared.
+    [Collection("SelfLog")]
     public class DefaultAppendBlobBlockPreparerUT
     {
         private readonly DefaultAppendBlobBlockPreparer defaultAppendBlobBlockPreparer;
@@ -75,5 +77,34 @@ namespace Serilog.Sinks.AzureBlobStorage.UnitTest
             Assert.True(preparedResult.Count == 1);
         }
 
+        private class ThrowingFormatter : ITextFormatter
+        {
+            public void Format(LogEvent logEvent, System.IO.TextWriter output)
+            {
+                throw new InvalidOperationException("Cannot format {yyyy}/{MM}/{dd}");
+            }
+        }
+
+        [Fact(DisplayName = "Should drop a LogEvent that cannot be formatted, also when the error text contains braces and the SelfLog is enabled")]
+        public void DropLogEventsThatCannotBeFormatted()
+        {
+            LogEvent[] logEvents = new[] { largeLogEvent };
+
+            using (System.IO.StringWriter selfLog = new System.IO.StringWriter())
+            {
+                Debugging.SelfLog.Enable(System.IO.TextWriter.Synchronized(selfLog));
+                try
+                {
+                    List<string> preparedResult = defaultAppendBlobBlockPreparer.PrepareAppendBlocks(new ThrowingFormatter(), logEvents).ToList();
+                    Assert.Empty(preparedResult);
+                }
+                finally
+                {
+                    Debugging.SelfLog.Disable();
+                }
+
+                Assert.Contains("Cannot format {yyyy}/{MM}/{dd}", selfLog.ToString());
+            }
+        }
     }
 }

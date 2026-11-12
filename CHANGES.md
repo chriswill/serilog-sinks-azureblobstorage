@@ -1,5 +1,19 @@
 # Changes
 
+### Unreleased
+- Fixed high memory usage when `retainedBlobCountLimit` is used with a container that holds many blobs ([#125](https://github.com/chriswill/serilog-sinks-azureblobstorage/issues/125), [#131](https://github.com/chriswill/serilog-sinks-azureblobstorage/issues/131)). Old blobs are now looked for only when the sink starts writing to a new blob instead of on every batch, the listing is limited to blobs that share the fixed leading part of the file name template, and only the names of matching blobs are kept in memory.
+- Blob retention now only deletes blobs whose whole name fits the file name template. Previously a blob could be deleted if any part of its name fit the template.
+- A failure to write to blob storage is now rethrown after it is written to the SelfLog, so that Serilog retries the batch. Previously the events were lost. A retried batch can lead to duplicate log entries if part of it had been written already.
+- A failure to delete old blobs no longer fails the batch.
+- Fixed `blobSizeLimitBytes` being ignored when choosing the next blob after a roll over ([#132](https://github.com/chriswill/serilog-sinks-azureblobstorage/pull/132)).
+- Fixed a `FormatException` that dropped batches when the SelfLog was enabled and the logged text contained braces ([#133](https://github.com/chriswill/serilog-sinks-azureblobstorage/issues/133)).
+- Reduced the number of storage operations: the container is created once instead of for every blob, existing blobs are no longer re-created, and several blob names (for example when using `{Level}`) are tracked at the same time.
+- When all 998 roll over files of a blob are full, the sink keeps writing to the last one.
+- The file name template is now parsed once instead of for every log event, and append blocks are prepared one at a time.
+- Target frameworks are now netstandard2.0, net8.0 and net10.0. The netstandard2.1 and net6.0 targets were removed; those platforms use the netstandard2.0 build.
+- Restored `IsAotCompatible` for net8.0 and later.
+- Updated Azure.Identity to 1.17.1, as all earlier versions are deprecated. Removed the direct references to System.Text.Json and Microsoft.Bcl.AsyncInterfaces, which are no longer needed.
+
 ### 4.0.5 10/30/2024
 - Updated Nugets to the latest versions for all dependencies.  There was a security vulnerability in System.Text.Json that has been addressed by updating.
 
